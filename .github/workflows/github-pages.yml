@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: npm install
+        run: npm install
+      - name: build
+        run: npm run build
+      - name: GitHub Pages
+        if: success()
+        with:
+          target_branch: master
+          build_dir: public
+        uses: crazy-max/ghaction-github-pages@v2.2.0
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
