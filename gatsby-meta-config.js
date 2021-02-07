@@ -2,16 +2,20 @@ module.exports = {
   title: `YGW Develop`,
   description: `Blog posted about ...`,
   author: `염규완`,
-  introduction: `I explain with words and code. I explain with words and code. I explain with words and code.`,
-  siteUrl: `https://gatsby-starter-bee.netlify.com`, // Your blog site url
+  introduction: `
+  풀스택 개발지향
+  - 서버: Linux, Docker, Kubernetes, 구글클라우드, AWS, DevOps.
+  - Back-end: nodeJS, php, MySQL, noSQL, graphQL, Drupal
+  - Front-end: React, angularJS`,
+  siteUrl: `https://duarbdhks.github.io/`, // Your blog site url
   social: {
     twitter: ``, // Your Twitter account
-    github: ``, // Your GitHub account
+    github: `duarbdhks`, // Your GitHub account
     medium: ``, // Your Medium account
     facebook: ``, // Your Facebook account
     linkedin: ``, // Your LinkedIn account
   },
-  icon: `content/assets/felog.png`, // Add your favicon
+  icon: `content/assets/ygw_logo.jpeg`, // Add your favicon
   keywords: [`blog`],
   comment: {
     disqusShortName: '', // Your disqus-short-name. check disqus.com.
@@ -21,7 +25,7 @@ module.exports = {
     countOfInitialPost: 10, // Config your initial count of post
   },
   sponsor: {
-    buyMeACoffeeId: 'duarbdhks',
+    buyMeACoffeeId: '',
   },
   share: {
     facebookAppId: '', // Add facebookAppId for using facebook share feature v3.2
