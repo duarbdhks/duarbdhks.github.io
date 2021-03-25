@@ -24,9 +24,14 @@ export const Bio = () => (
               />
               <div className="author-name">
                 <span className="author-name-prefix">글쓴이</span>
-                <Link to={'/about'} className="author-name-content">
+                {/*<Link to={'/about'} className="author-name-content">*/}
+                {/*  <span>@{author}</span>*/}
+                {/*</Link>*/}
+                <a href={'https://www.notion.so/Yeum-Gu-Whan-bb18f0fe4c7846f2baf72d1483c25b34'}
+                   target={`_blank`}
+                   className="author-name-content">
                   <span>@{author}</span>
-                </Link>
+                </a>
                 <div className="author-introduction">{introduction}</div>
                 <p className="author-socials">
                   {social.github && (
