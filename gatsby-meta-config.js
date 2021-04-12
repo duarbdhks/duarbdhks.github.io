@@ -4,8 +4,8 @@ module.exports = {
   author: `염규완`,
   introduction: `
   풀스택 개발지향
-  - 서버: Linux, Docker, Kubernetes, 구글클라우드, AWS, DevOps.
-  - Back-end: nodeJS, php, MySQL, noSQL, graphQL, Drupal
+  - 서버: Linux, Docker, Kubernetes, 구글클라우드, AWS, NCP, DevOps
+  - Back-end: NodeJS, php, MySQL, noSQL, graphQL, Drupal
   - Front-end: React, angularJS`,
   siteUrl: `https://duarbdhks.github.io/`, // Your blog site url
   social: {
