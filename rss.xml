@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[YGW Develop]]></title><description><![CDATA[Blog posted about ...]]></description><link>https://duarbdhks.github.io</link><generator>GatsbyJS</generator><lastBuildDate>Mon, 12 Apr 2021 18:03:51 GMT</lastBuildDate><item><title><![CDATA[6. Velero 구축 - 백업 및 복구]]></title><description><![CDATA[Velero 란? Kubernetes 클러스터 리소스 및 영구 볼륨을 백업 및 복원할 수 있는 도구.
+AWS, GCP, Azure 와 연동하여 구축가능.
+Ceph과 호환하여 구축 1) 정보 버전 정보: v1.5 릴리즈: https://github…]]></description><link>https://duarbdhks.github.io/kubernetes/6_velero/</link><guid isPermaLink="false">https://duarbdhks.github.io/kubernetes/6_velero/</guid><pubDate>Thu, 25 Mar 2021 01:02:17 GMT</pubDate><content:encoded>&lt;h1 id=&quot;velero-란&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#velero-%EB%9E%80&quot; aria-label=&quot;velero 란 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Velero 란?&lt;/h1&gt;
+&lt;p&gt;Kubernetes 클러스터 리소스 및 영구 볼륨을 백업 및 복원할 수 있는 도구.
+AWS, GCP, Azure 와 연동하여 구축가능.
+Ceph과 호환하여 구축&lt;/p&gt;
+&lt;h3 id=&quot;1-정보&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EC%A0%95%EB%B3%B4&quot; aria-label=&quot;1 정보 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1) 정보&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;버전 정보: v1.5&lt;/li&gt;
+&lt;li&gt;릴리즈: &lt;a href=&quot;https://github.com/vmware-tanzu/velero/releases/tag/v1.5.1&quot;&gt;https://github.com/vmware-tanzu/velero/releases/tag/v1.5.1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Git: &lt;a href=&quot;https://github.com/vmware-tanzu/velero&quot;&gt;https://github.com/vmware-tanzu/velero&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Download: &lt;a href=&quot;https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz&quot;&gt;https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Document: &lt;a href=&quot;https://velero.io/docs/v1.5/&quot;&gt;https://velero.io/docs/v1.5/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;2-수행&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-%EC%88%98%ED%96%89&quot; aria-label=&quot;2 수행 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2) 수행&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;클러스터 백업 및 복원&lt;/li&gt;
+&lt;li&gt;클러스터 리소스를 다른 클러스터로 마이그레이션&lt;/li&gt;
+&lt;li&gt;클러스터 복제( ex) 프로덕션 클러스터를 개발용 클러스터에 복제 )&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;3-구성&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-%EA%B5%AC%EC%84%B1&quot; aria-label=&quot;3 구성 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3) 구성&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;클러스터에서 실행되는 서버&lt;/li&gt;
+&lt;li&gt;로컬에서 실행되는 커맨드라인 형태의 Client&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;4-작동원리&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-%EC%9E%91%EB%8F%99%EC%9B%90%EB%A6%AC&quot; aria-label=&quot;4 작동원리 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4) 작동원리&lt;/h3&gt;
+&lt;p&gt;on-demand(요청이 있을 시 언제든) 백업, 예약 백업, 복언 등 각 작업은 사용자 지정 리소스(CRD)로 정의됨.&lt;/p&gt;
+&lt;h3 id=&quot;5-목적&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-%EB%AA%A9%EC%A0%81&quot; aria-label=&quot;5 목적 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5) 목적&lt;/h3&gt;
+&lt;p&gt;연구자 및 박사들의 연구 결과 및 환경설정, 데이터 등을 스냅샷 백업함. 백업된 스냅샷을 추후 Deploy로 복원하여 연구를 지속할수 있도록 함.&lt;/p&gt;
+&lt;h1 id=&quot;설치&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EC%84%A4%EC%B9%98&quot; aria-label=&quot;설치 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;설치&lt;/h1&gt;
+&lt;h3 id=&quot;1-전제-조건&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EC%A0%84%EC%A0%9C-%EC%A1%B0%EA%B1%B4&quot; aria-label=&quot;1 전제 조건 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1) 전제 조건&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Kubernetes v1.10 이상 설치&lt;/li&gt;
+&lt;li&gt;kubectl 설치&lt;/li&gt;
+&lt;li&gt;클러스터 노드는 CPU4개 이상&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;2-다운로드-및-명령어-설정&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C-%EB%B0%8F-%EB%AA%85%EB%A0%B9%EC%96%B4-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;2 다운로드 및 명령어 설정 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2) 다운로드 및 명령어 설정&lt;/h3&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token function&quot;&gt;wget&lt;/span&gt; https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz
+&lt;span class=&quot;token function&quot;&gt;tar&lt;/span&gt; zxf velero-v1.5.1-linux-amd64.tar.gz
+&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.5.1-linux-amd64
+&lt;span class=&quot;token function&quot;&gt;chown&lt;/span&gt; -R root:root ./*
+&lt;span class=&quot;token function&quot;&gt;cp&lt;/span&gt; velero /usr/local/bin
+
+&lt;span class=&quot;token comment&quot;&gt;## 자동완성 &lt;/span&gt;
+&lt;span class=&quot;token builtin class-name&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;source &amp;lt;(velero completion bash)&quot;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&gt;&gt;&lt;/span&gt; ~/.bashrc &lt;span class=&quot;token comment&quot;&gt;#서버 재접속&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&quot;3-velero-서버-설정&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-velero-%EC%84%9C%EB%B2%84-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;3 velero 서버 설정 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3) Velero 서버 설정&lt;/h3&gt;
+&lt;p&gt;velero 사용을 위해서는 helm2 의 tiller와 비슷한 형태로, velero 서버 구축이 필요함.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;velero version&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 869px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 8.333333333333332%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAACCAYAAABYBvyLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAaklEQVQI143OSQ5AQBQEUHcgWIt5WphpLWIKIsT9D1P8dgGLl1RqUyV5BUdY9/DLDnbavBh0O4JqBtCsUKAsGx6UHyS+3SjHHe16oRg21PMhUFdNB5rlRMwGuDl/tWLQSr5hOkA9nXIyJjwIij5DecAfyQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;velero&quot;
+        title=&quot;velero&quot;
+        src=&quot;/static/5c743c1fe41e4b1454e77fac80799d05/2b2c6/velero.png&quot;
+        srcset=&quot;/static/5c743c1fe41e4b1454e77fac80799d05/5a46d/velero.png 300w,
+/static/5c743c1fe41e4b1454e77fac80799d05/0a47e/velero.png 600w,
+/static/5c743c1fe41e4b1454e77fac80799d05/2b2c6/velero.png 869w&quot;
+        sizes=&quot;(max-width: 869px) 100vw, 869px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Velero 관련 자격 증명 파일 생성&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.5.1-linux-amd64/examples/minio
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; credentials-velero
+--------------------
+&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;default&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;
+aws_access_key_id &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; minio
+aws_secret_access_key &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; minio123
+--------------------&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Minio 및 Velero 설치&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## Minio 설치 ##&lt;/span&gt;
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; 00-minio-deployment.yaml
+--------------------
+&lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;. 중략 &lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;.
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: velero
+  name: minio
+  labels:
+    component: minio
+spec:
+  type: LoadBalancer
+  ports:
+    - port: &lt;span class=&quot;token number&quot;&gt;9000&lt;/span&gt;
+      targetPort: &lt;span class=&quot;token number&quot;&gt;9000&lt;/span&gt;
+      protocol: TCP
+      nodePort: &lt;span class=&quot;token number&quot;&gt;30010&lt;/span&gt;
+  selector:
+    component: minio
+&lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;. 중략 &lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;.
+--------------------
+kubectl apply -f 00-minio-deployment.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## Velero 설치 ##&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./credentials-velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000 &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0
+
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000,publicUrl&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token number&quot;&gt;34.84&lt;/span&gt;.208.171:30010 &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0,velero/velero-plugin-for-microsoft-azure:v1.0.0,velero/velero-plugin-for-gcp:v1.0.0
+
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./cloud-credentials &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000,publicUrl&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;minio가 설치된 서버:포트번호&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+    &lt;span class=&quot;token comment&quot;&gt;# 1.2.0 버전 업되면서 install 옵션이 추가&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0,velero/velero-plugin-for-microsoft-azure:v1.0.0,velero/velero-plugin-for-gcp:v1.0.0
+
+&lt;span class=&quot;token comment&quot;&gt;## AWS ##&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; 
+--provider aws 
+--plugins velero/velero-plugin-for-aws:v1.0.0 
+--bucket backups --provider aws --secret-file ./aws-iam-creds --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;us-east-2 --snapshot-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;us-east-2 --use-restic
+
+&lt;span class=&quot;token comment&quot;&gt;###### Ceph 오브젝트 연결 ######&lt;/span&gt;
+
+&lt;span class=&quot;token comment&quot;&gt;# velero 오브젝트 스토리지 AWS ACCESS KEY&lt;/span&gt;
+kubectl get secrets -n velero velero -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.data.AWS_ACCESS_KEY_ID}&apos;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; base64 --decode
+
+&lt;span class=&quot;token comment&quot;&gt;# velero 오브젝트 스토리지 AWS_SECRET_ACCESS_KEY&lt;/span&gt;
+kubectl get secrets -n velero velero -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.data.AWS_SECRET_ACCESS_KEY}&apos;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; base64 --decode
+
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; aws-iam-creds
+----------------------
+&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;default&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;
+aws_access_key_id &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; 33N1ICUFF9N4J7CKOHNS
+aws_secret_access_key &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; wWaOMrrMHxprj2hcl8CqBrXNkSAfxSVI6wZiwsy4
+------------------------
+&lt;span class=&quot;token assign-left variable&quot;&gt;rgwPort&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;kubectl get svc -n rook-ceph rook-ceph-rgw-kreonet-store-external -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.spec.ports[0].nodePort}&apos;&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./aws-iam-creds &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;ap-northeast-2,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://203.253.235.74:&lt;span class=&quot;token variable&quot;&gt;${rgwPort}&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0
+&lt;span class=&quot;token comment&quot;&gt;##############################&lt;/span&gt;
+
+&lt;span class=&quot;token assign-left variable&quot;&gt;rgwPort&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;kubectl get svc -n rook-ceph rook-ceph-rgw-kimbig-store-external -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.spec.ports[0].nodePort}&apos;&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./aws-iam-creds &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;ap-northeast-2,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://34.64.71.10:&lt;span class=&quot;token variable&quot;&gt;${rgwPort}&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.1.0
+
+&lt;span class=&quot;token comment&quot;&gt;## Velero 서버 연동 확인&lt;/span&gt;
+velero version
+
+&lt;span class=&quot;token comment&quot;&gt;## Velero 서버 삭제 ##&lt;/span&gt;
+kubectl delete deployment velero -n velero
+kubectl delete crds -l &lt;span class=&quot;token assign-left variable&quot;&gt;component&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;velero
+kubectl delete namespace/velero clusterrolebinding/velero  &lt;span class=&quot;token comment&quot;&gt;# 재설치의 경우 굳이 삭제하지 않아도 된다.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;예제 nginx 애플리케이션 배포&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## 1. nginx 샘플 Deploy 생성&lt;/span&gt;
+&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.4.2-linux-amd64/examples/nginx-app
+kubectl apply -f base.yaml
+
+&lt;span class=&quot;token comment&quot;&gt;## 2. 백업&lt;/span&gt;
+velero backup create nginx-backup --selector &lt;span class=&quot;token assign-left variable&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;nginx
+
+&lt;span class=&quot;token comment&quot;&gt;## 3. 복원&lt;/span&gt;
+velero restore create --from-backup nginx-backup&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&quot;간단-사용법&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95&quot; aria-label=&quot;간단 사용법 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;간단 사용법&lt;/h1&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;#### 백업 ####&lt;/span&gt;
+&lt;span class=&quot;token comment&quot;&gt;# 네임스페이스 지정&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --include-namespaces tpas,heimdall,kafka
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 특정 네임스페이스 제외&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --exclude-namespaces default,kube-system
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 네임스페이스의 특정 리소스 제외&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --include-namespaces tpas,heimdall,kafka --exclude-resources ingress,service
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 백업 데이터 확인 / 어떤 리소스가 백업되어 있는지 확인 가능&lt;/span&gt;
+$ velero backup describe &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --details
+
+&lt;span class=&quot;token comment&quot;&gt;#### 스케쥴링 백업 ####&lt;/span&gt;
+velero schedule create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;schedule-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --schedule&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;0 1 * * * or @daily&quot;&lt;/span&gt; --include-resources deployments,service
+
+&lt;span class=&quot;token comment&quot;&gt;#### 백업 삭제 ####&lt;/span&gt;
+velero backup delete &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;backup-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --confirm &lt;span class=&quot;token comment&quot;&gt;# 바로 삭제&lt;/span&gt;
+velero schedule delete &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;schedule-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+
+&lt;span class=&quot;token comment&quot;&gt;#### 복원 ####&lt;/span&gt;
+velero restore create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;restore-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --from-backup &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;backup-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content:encoded></item><item><title><![CDATA[1. Kubernetes 설치 및 환경 구성]]></title><description><![CDATA[Test workpsace workpsace2 workspace3]]></description><link>https://duarbdhks.github.io/kubernetes/1_kubernetes_setting/</link><guid isPermaLink="false">https://duarbdhks.github.io/kubernetes/1_kubernetes_setting/</guid><pubDate>Sat, 20 Mar 2021 10:02:17 GMT</pubDate><content:encoded>&lt;h1 id=&quot;test&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#test&quot; aria-label=&quot;test permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Test&lt;/h1&gt;
+&lt;h2 id=&quot;workpsace&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workpsace&quot; aria-label=&quot;workpsace permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workpsace&lt;/h2&gt;
+&lt;h2 id=&quot;workpsace2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workpsace2&quot; aria-label=&quot;workpsace2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workpsace2&lt;/h2&gt;
+&lt;h2 id=&quot;workspace3&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workspace3&quot; aria-label=&quot;workspace3 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workspace3&lt;/h2&gt;</content:encoded></item><item><title><![CDATA[GitHub 블로그]]></title><description><![CDATA[Why GitHub…]]></description><link>https://duarbdhks.github.io/github/github-blog-history/</link><guid isPermaLink="false">https://duarbdhks.github.io/github/github-blog-history/</guid><pubDate>Mon, 08 Feb 2021 23:03:25 GMT</pubDate><content:encoded>&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1200px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 23.333333333333332%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAoklEQVQY022QWxLCMAhFs6TyCInVcR8dP9z/KhAIaHX8YKDk3gO0EaIykhKs3C3Ya+II79OGkcW+PVwnyKEtHwNFblU4uAPrxG7ZDF10WPjbLsPga9gK1pt0vbAPdH9CA5j0AFo9TCyYIps+Dfp8HHrfr4obmG4ZJ9WGf4BxVjZq4/dvsM0cKnk+5zAHhc978Dm9VVGPhHgyphDwB3Z+/97wBVGToA6FDANMAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;main_thumbnail&quot;
+        title=&quot;main_thumbnail&quot;
+        src=&quot;/static/a6fc123951365a8074e8a1a2dfb27f43/c1b63/github-blog-history.png&quot;
+        srcset=&quot;/static/a6fc123951365a8074e8a1a2dfb27f43/5a46d/github-blog-history.png 300w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/0a47e/github-blog-history.png 600w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/c1b63/github-blog-history.png 1200w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/61016/github-blog-history.png 1770w&quot;
+        sizes=&quot;(max-width: 1200px) 100vw, 1200px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;why-github&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#why-github&quot; aria-label=&quot;why github permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Why GitHub?&lt;/h2&gt;
+&lt;p&gt;연차가 쌓이고 경험이 늘어날수록 알게 되는 것들이 많아졌다.  이를 나만의 공간에 정리하고 싶었고, 기술블로그를 시작하게 되었다.&lt;/p&gt;
+&lt;p&gt;블로그를 막상 시작하려하니 어떤 블로그를 이용해야 할지가고민이 되었다.
+&lt;strong&gt;네이버블로그&lt;/strong&gt;, &lt;strong&gt;티스토리&lt;/strong&gt; 등 편한 선택지는 많이 있었다. 하지만 최종적인 선택은 &lt;strong&gt;깃헙 블로그&lt;/strong&gt;였다.
+이번 기회에 깃헙을 더 깊게 사용해보고자 했었다. 시간은 들었지만 올바른 선택이었던 것 같다.&lt;/p&gt;
+&lt;p&gt;아래 내용은 GitHub 블로그 생성 히스토리이다.&lt;/p&gt;
+&lt;h2 id=&quot;1-레포지토리-생성&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EB%A0%88%ED%8F%AC%EC%A7%80%ED%86%A0%EB%A6%AC-%EC%83%9D%EC%84%B1&quot; aria-label=&quot;1 레포지토리 생성 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. 레포지토리 생성&lt;/h2&gt;</content:encoded></item><item><title><![CDATA[Quick Start]]></title><description><![CDATA[Getting Started 😎 1. Create a Gatsby site. If you are not using , following Gatsby Getting Started 2. Start developing. 3. Add your content…]]></description><link>https://duarbdhks.github.io/development/quick_start/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/quick_start/</guid><pubDate>Sun, 05 Jul 2020 17:21:13 GMT</pubDate><content:encoded>&lt;h1 id=&quot;getting-started-&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#getting-started-&quot; aria-label=&quot;getting started  permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Getting Started 😎&lt;/h1&gt;
+&lt;h2 id=&quot;1-create-a-gatsby-site&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-create-a-gatsby-site&quot; aria-label=&quot;1 create a gatsby site permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. Create a Gatsby site.&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;# create a new Gatsby site using the blog starter
+$ npx gatsby new my-blog-starter https://github.com/JaeYeopHan/gatsby-starter-bee&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you are not using &lt;code class=&quot;language-text&quot;&gt;npx&lt;/code&gt;, following &lt;a href=&quot;https://www.gatsbyjs.org/docs/quick-start&quot;&gt;Gatsby Getting Started&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ npm install -g gatsby-cli
+$ gatsby new my-blog-starter https://github.com/JaeYeopHan/gatsby-starter-bee&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;2-start-developing&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-start-developing&quot; aria-label=&quot;2 start developing permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2. Start developing.&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ cd my-blog-starter/
+$ npm start
+# open localhost:8000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;3-add-your-content&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-add-your-content&quot; aria-label=&quot;3 add your content permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3. Add your content&lt;/h2&gt;
+&lt;p&gt;You can write…&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;contents to blog in &lt;code class=&quot;language-text&quot;&gt;content/blog&lt;/code&gt; directory.&lt;/li&gt;
+&lt;li&gt;resume &lt;code class=&quot;language-text&quot;&gt;content/__about&lt;/code&gt; directory.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;With markdown syntax and some meta data&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&quot;support-script-for-creating-new-post&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#support-script-for-creating-new-post&quot; aria-label=&quot;support script for creating new post permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Support script for creating new post&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;/34628ec574f22bee7a31c7f208a84e79/cli-tool-example.gif&quot;&gt;&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ npm run post&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;4-fix-meta-data&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-fix-meta-data&quot; aria-label=&quot;4 fix meta data permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4. Fix meta data&lt;/h2&gt;
+&lt;p&gt;You can fix meta data of blog in &lt;code class=&quot;language-text&quot;&gt;/gatsby-meta-config.js&lt;/code&gt; file.&lt;/p&gt;
+&lt;h2 id=&quot;5-publish-with-netlify&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-publish-with-netlify&quot; aria-label=&quot;5 publish with netlify permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5. Publish with &lt;a href=&quot;https://netlify.com&quot;&gt;netlify&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://app.netlify.com/start/deploy?repository=https://github.com/JaeYeopHab/gatsby-starter-bee&quot;&gt;&lt;img src=&quot;https://www.netlify.com/img/deploy/button.svg&quot; alt=&quot;Deploy to Netlify&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;💡 if you want to deploy github pages, add following script to package.json&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;json&quot;&gt;&lt;pre class=&quot;language-json&quot;&gt;&lt;code class=&quot;language-json&quot;&gt;&lt;span class=&quot;token property&quot;&gt;&quot;scripts&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token property&quot;&gt;&quot;deploy&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;gatsby build &amp;amp;&amp;amp; gh-pages -d public -b master -r &apos;git@github.com:${your github id}/${github page name}.github.io.git&apos;&quot;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h1 id=&quot;memo-write-a-post&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#memo-write-a-post&quot; aria-label=&quot;memo write a post permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;:memo: Write a post!&lt;/h1&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;content
+├── __about
+└── blog&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;You can register your resume on the web. (in &lt;code class=&quot;language-text&quot;&gt;__about&lt;/code&gt; directory)&lt;/li&gt;
+&lt;li&gt;You can register your post. (in &lt;code class=&quot;language-text&quot;&gt;blog&lt;/code&gt; directory)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;🧐-customize&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%F0%9F%A7%90-customize&quot; aria-label=&quot;🧐 customize permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;🧐 Customize!&lt;/h1&gt;
+&lt;h2 id=&quot;gatsby-config&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#gatsby-config&quot; aria-label=&quot;gatsby config permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Gatsby config&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;/root
+├── gatsby-browser.js // font, polyfill, onClientRender ...
+├── gatsby-config.js // Gatsby config
+├── gatsby-meta-config.js // Template meta config
+└── gatsby-node.js // Gatsby Node config&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;structure&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#structure&quot; aria-label=&quot;structure permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Structure&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;src
+├── components // Just component with styling
+├── layout // home, post layout
+├── pages // routing except post: /(home), /about
+├── styles
+│   ├── code.scss
+│   ├── dark-theme.scss
+│   ├── light-theme.scss
+│   └── variables.scss
+└── templates
+    ├── blog-post.js
+    └── home.js&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;style&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#style&quot; aria-label=&quot;style permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Style&lt;/h2&gt;
+&lt;p&gt;You can customize color in &lt;code class=&quot;language-text&quot;&gt;src/styles&lt;/code&gt; directory.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;src/styles
+├── code.scss
+├── dark-theme.scss
+├── light-theme.scss
+└── variables.scss&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Welcome to gatsby-starter-bee!
+Happy blogging! 👻&lt;/p&gt;
+&lt;/blockquote&gt;</content:encoded></item><item><title><![CDATA[Welcome Bee starter]]></title><description><![CDATA[Welcome, Gatsby! This starter is full-package for your new blog! 1. Support Four frontmatter title date category draft 2. Code highlighting…]]></description><link>https://duarbdhks.github.io/development/hello/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/hello/</guid><pubDate>Sat, 04 Jul 2020 12:21:13 GMT</pubDate><content:encoded>&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 466px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 95.66666666666666%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAATCAYAAACQjC21AAAACXBIWXMAABYlAAAWJQFJUiTwAAADJklEQVQ4y5WU909TURTH+y/4iyPGvffeJibGHzQaFUQUBJQlCCQGiWgEhUQhCrJXgRIUUAsKkRVGBKEGhCAgSFFkCdSGWVkyur6+e+SVV6wx3uSm972++znje84RYWbp9Xra/Fmr1cHU0uv00HH/Cb/lz2yJ5r7UCUA67rKyQ4WvdUq0NfRiqHfMCMz23PsiU7DpSQ3yk+pw++Qz2K6LguXSUFxYFgaHrbF45PAa9WWdRkZ5qAEohCnahnDn9HOYLQiGz5kXyBHXoKaoDRU5X5Byvxwuu+NhsTgESb4l0Gp0Bm95qEhopa97GNePJMNufRTe57VAPaVFS60SZS/lBGThT4xNI9nvLRmMu1lsFDIBhSEHOWbDelUEQXq7hnHXXAqbtZG4uDwMVivCYb85BhKfEvpWGlwB84XBePO8kZ61M0KJ+FAb33VRKJmRVRgZ/AnXvQmUP9c9CXRm++queIIHO2Uj3D2fjN06kYbJ8enZkHmghMuJ/ZZYTE2oEetVRBfdD0jgvFNMIP7XbX8ifcf2tX2JuLIpBh9nRGIsQw4DbLModw2yb+j6PEAeOXCXXDgPhVDmlc2aSPKewS5x59yED7/D1swA1dNa+JpJyTqzKq/qwfd2FcFYqTC40/Y4uB+UIF9Si/JXcpRIPyEjtJLA6SGVxkAWu59FOvwtM1BX2kGWmzkoU5WHMg89DiWhlAMxxZnB/p4RWK+OQF5i7SyQzyErBVsu5LEfkxS23YZoggo9Zb/s/al5D1Fd2ApZZjMJ2VTZPZtDHthU2UMdkRYoo+fqglZc3hht8JSpzYRg5cPqj0XlfTwVXseeUmcZVBbWYYhrLqxWhqOmuI2e60o6SCjmgaJ1CB6Hk6hb2Ep5UE51WMbl06gOhZ0yqBzFDc4iS3RBcj29a65WUO5YnbKl6huH2LsYZ+cHUamZ7BRhL/dxHeJ/PgPmix7D8+gTUjLQLgvOO8SI9iyE47Y4WC4JRWqAbHaECXvZ1LTRqLXUUvfOpZPirB6ZykyUMLc8Kqu/Tps/5qFObzRQBxQjaG/sRae8H6OqCSOQqSEr+t+JrfvHxP4Fu13ld6Om6H4AAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;hello&quot;
+        title=&quot;hello&quot;
+        src=&quot;/static/31955aadfaea1bcef76bb662347d1af4/fc1a1/hello.png&quot;
+        srcset=&quot;/static/31955aadfaea1bcef76bb662347d1af4/5a46d/hello.png 300w,
+/static/31955aadfaea1bcef76bb662347d1af4/fc1a1/hello.png 466w&quot;
+        sizes=&quot;(max-width: 466px) 100vw, 466px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Welcome, Gatsby! This starter is full-package for your new blog!&lt;/p&gt;
+&lt;h2 id=&quot;1-support-four-frontmatter&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-support-four-frontmatter&quot; aria-label=&quot;1 support four frontmatter permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. Support Four frontmatter&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;---
+title: &amp;#39;Welcome Bee starter&amp;#39;
+date: 2019-2-6 16:21:13
+category: &amp;#39;development&amp;#39;
+draft: false
+---&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;title&lt;/li&gt;
+&lt;li&gt;date&lt;/li&gt;
+&lt;li&gt;category&lt;/li&gt;
+&lt;li&gt;draft&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;2-code-highlighting&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-code-highlighting&quot; aria-label=&quot;2 code highlighting permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2. Code highlighting&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;With &lt;a href=&quot;https://github.com/tonsky/FiraCode&quot;&gt;Fira Code&lt;/a&gt; font&lt;/li&gt;
+&lt;li&gt;Support highlighting with &lt;a href=&quot;https://github.com/PrismJS/prism&quot;&gt;prism&lt;/a&gt;
+2-1. Use inline highlighting&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&quot;gatsby-highlight has-highlighted-lines&quot; data-language=&quot;js&quot;&gt;&lt;pre class=&quot;language-js&quot;&gt;&lt;code class=&quot;language-js&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;import&lt;/span&gt; React &lt;span class=&quot;token keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;react&apos;&lt;/span&gt;
+
+&lt;span class=&quot;gatsby-highlight-code-line&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;token constant&quot;&gt;TEMPLATE&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;gatsby-starter-bee&apos;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;React&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;Component&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token function-variable function&quot;&gt;handleClick&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token parameter&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&gt;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;val &lt;span class=&quot;token operator&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;bar&apos;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;val &lt;span class=&quot;token operator&quot;&gt;!==&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;zoo&apos;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;2&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+    console&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;clicked&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;3&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;token function&quot;&gt;render&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;div&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;Welcome&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; Gatsby&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; $&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;TEMPLATE&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt;div&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;em&gt;code&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1046px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 105%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAYAAABG1c6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC5klEQVQ4y51U2VITQRTNp6iQTCazrz1bFjIkiAJVvlilz2AV/oE+yINf4IOCVcoia0AoREBZ1O/iZY63e0hYxYKHU909mZw+5557p7D34/Dk4Oj3yfGvPyeHHMd3A+fY+3l0UiBCzC+u4t37T5j+MIuZj7fH9MxnzM0vYXf/AIWtnd3s+diz7GnsZG6bZYrKMk32M61yEap8PbQKy8pFOxuoP8o2NrezwkpnA8ODY7AlHarlQSrakPotlPptse+ucsn5J4oPTEQsxcLiCgpLKx20OaEWIHYHEAdtWEYMZkXiGTMZHM1HWfzZ7aEi5VDKnhAQBSlm5xe7hKPwDQbPjBD6KXynIfaW6iO0Arg6g17xetBkVyjrkpb6LISseUY41BqDo3rwrBhJNCRUmloMq+IgtgMEpDKicgSmR2cGRpeXizcQcoWeHiDyUnh2E6GdoOpXEXt1JF5C1qtwjGHCQ6hyIuxzIvk6wmUiHGw+hqnEGIieIPZHiGwIkR2jXWuj7icwlJBsRmQ3glr2icS5UMerhOko+u7pMKlmg3EdDZaIIFzNo4t8UXhF4kl30+bqnF4dr1huEWH/fQO2HqGVNMhmFQEpdI1Q1NYlcmYGUGSWWz0XyLWEXCHvJUMJqH4xJRySPVLWbY3TtUuUt45zs2WusOrX0Axr8K0aLC0V7ZI4gWidiuRdIPkvIVcYOrFI1aHE8+Lzxs1x3uJ58N94Y19KeYT6yiLLeX9JAnwEc5RPz3zlLcOfdUeyTPaFmB7hagcpESqU4GizhUZAU2JENHohIlIc2PkI8pB8qq2pMtGjNQKjQeBh2YpLs3wp5WJfrtBSmRg5h+rnUcocnISvPHX+Dl85uaOH4j1Ddi7OcisdEzZ4TbglgeIZ5NLVvdQ7X2M570O9l95twKem1GcKhXMLRLi+sYWpqbeYePES4+OTd8LExCRevX6DlbUNFL5930dnfZM+jsvihrtg/ssS1jpfsb2zh7//OydtLwK/6QAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;code example&quot;
+        title=&quot;code example&quot;
+        src=&quot;/static/14a95f9ea1a2560a874efa82ad7db24f/1c1a4/code_example.png&quot;
+        srcset=&quot;/static/14a95f9ea1a2560a874efa82ad7db24f/5a46d/code_example.png 300w,
+/static/14a95f9ea1a2560a874efa82ad7db24f/0a47e/code_example.png 600w,
+/static/14a95f9ea1a2560a874efa82ad7db24f/1c1a4/code_example.png 1046w&quot;
+        sizes=&quot;(max-width: 1046px) 100vw, 1046px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;3-support-markdown-h2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-support-markdown-h2&quot; aria-label=&quot;3 support markdown h2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3. Support Markdown (h2)&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;With &lt;a href=&quot;https://fonts.google.com/specimen/Noto+Sans&quot;&gt;Noto Sans&lt;/a&gt; font&lt;/li&gt;
+&lt;li&gt;Support header anchoring&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;h3&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h3&quot; aria-label=&quot;h3 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h3&lt;/h3&gt;
+&lt;h4 id=&quot;h4&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h4&quot; aria-label=&quot;h4 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h4&lt;/h4&gt;
+&lt;h5 id=&quot;h5&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h5&quot; aria-label=&quot;h5 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h5&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;quote!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;bold&lt;/strong&gt; &lt;em&gt;italic&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&quot;4-support-emoji-&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-support-emoji-&quot; aria-label=&quot;4 support emoji  permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4. Support emoji 🚀&lt;/h2&gt;
+&lt;p&gt;Based on &lt;a href=&quot;https://github.com/emojione/emojione&quot;&gt;emojione&lt;/a&gt; 🙏&lt;/p&gt;
+&lt;h2 id=&quot;5-support-lightdark-mode&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-support-lightdark-mode&quot; aria-label=&quot;5 support lightdark mode permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5. Support light/dark mode&lt;/h2&gt;
+&lt;h2 id=&quot;6-support-social-sharing-feature&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#6-support-social-sharing-feature&quot; aria-label=&quot;6 support social sharing feature permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;6. Support social sharing feature&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Twitter&lt;/li&gt;
+&lt;li&gt;Facebook&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;bonus-code-classlanguage-textbuy-me-a-coffeecode-button&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#bonus-code-classlanguage-textbuy-me-a-coffeecode-button&quot; aria-label=&quot;bonus code classlanguage textbuy me a coffeecode button permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Bonus, &lt;code class=&quot;language-text&quot;&gt;Buy me a coffee&lt;/code&gt; button&lt;/h3&gt;
+&lt;p&gt;Set, &lt;code class=&quot;language-text&quot;&gt;buyMeACoffeeId&lt;/code&gt; of &lt;code class=&quot;language-text&quot;&gt;gatsby-meta-config.js&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&quot;7-comments-feature&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#7-comments-feature&quot; aria-label=&quot;7 comments feature permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;7. Comments feature&lt;/h2&gt;
+&lt;p&gt;You can add comments feature by selecting one of them.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li class=&quot;task-list-item&quot;&gt;&lt;input type=&quot;checkbox&quot; disabled&gt; Disqus&lt;/li&gt;
+&lt;li class=&quot;task-list-item&quot;&gt;&lt;input type=&quot;checkbox&quot; disabled&gt; utterances&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;8-support-latex&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#8-support-latex&quot; aria-label=&quot;8 support latex permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;8. Support latex&lt;/h2&gt;
+&lt;p&gt;Support latex rendering with katex plugin.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;tex&quot;&gt;&lt;pre class=&quot;language-tex&quot;&gt;&lt;code class=&quot;language-tex&quot;&gt;&lt;span class=&quot;token equation string&quot;&gt;$$&lt;span class=&quot;token equation-command regex&quot;&gt;\prod&lt;/span&gt;_{i=a}^{b} f(i)$$&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;span class=&quot;katex&quot;&gt;&lt;span class=&quot;katex-mathml&quot;&gt;&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mo&gt;∏&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/mrow&gt;&lt;mi&gt;b&lt;/mi&gt;&lt;/msubsup&gt;&lt;mi&gt;f&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;(&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding=&quot;application/x-tex&quot;&gt;\prod_{i=a}^{b} f(i)&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&quot;katex-html&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;base&quot;&gt;&lt;span class=&quot;strut&quot; style=&quot;height:1.2887179999999998em;vertical-align:-0.29971000000000003em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;mop&quot;&gt;&lt;span class=&quot;mop op-symbol small-op&quot; style=&quot;position:relative;top:-0.0000050000000000050004em;&quot;&gt;∏&lt;/span&gt;&lt;span class=&quot;msupsub&quot;&gt;&lt;span class=&quot;vlist-t vlist-t2&quot;&gt;&lt;span class=&quot;vlist-r&quot;&gt;&lt;span class=&quot;vlist&quot; style=&quot;height:0.9890079999999999em;&quot;&gt;&lt;span style=&quot;top:-2.40029em;margin-left:0em;margin-right:0.05em;&quot;&gt;&lt;span class=&quot;pstrut&quot; style=&quot;height:2.7em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;sizing reset-size6 size3 mtight&quot;&gt;&lt;span class=&quot;mord mtight&quot;&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;mrel mtight&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;a&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;top:-3.2029em;margin-right:0.05em;&quot;&gt;&lt;span class=&quot;pstrut&quot; style=&quot;height:2.7em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;sizing reset-size6 size3 mtight&quot;&gt;&lt;span class=&quot;mord mtight&quot;&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;b&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;vlist-s&quot;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;vlist-r&quot;&gt;&lt;span class=&quot;vlist&quot; style=&quot;height:0.29971000000000003em;&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;mspace&quot; style=&quot;margin-right:0.16666666666666666em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;mord mathdefault&quot; style=&quot;margin-right:0.10764em;&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;mopen&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mord mathdefault&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;mclose&quot;&gt;)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;9-other-features-of-this-template&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#9-other-features-of-this-template&quot; aria-label=&quot;9 other features of this template permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;9. Other features of this template&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;You can add resume to &lt;code class=&quot;language-text&quot;&gt;/about&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Lazy rendering&lt;/li&gt;
+&lt;li&gt;Scroll restoration&lt;/li&gt;
+&lt;li&gt;Categorize posts&lt;/li&gt;
+&lt;li&gt;Offline caching with service worker (based gatsby)&lt;/li&gt;
+&lt;li&gt;Support GA(Google Analytics)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Let’s Start! &lt;a href=&quot;https://github.com/JaeYeopHan/gatsby-starter-bee&quot;&gt;Go&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content:encoded></item><item><title><![CDATA[about]]></title><description><![CDATA[Your name Thank you for reading my resume. If you want to contact me, Please send me an email.]]></description><link>https://duarbdhks.github.io/resume-en/</link><guid isPermaLink="false">https://duarbdhks.github.io/resume-en/</guid><pubDate>Sun, 27 Jan 2019 16:21:13 GMT</pubDate><content:encoded>&lt;h1 id=&quot;your-name&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#your-name&quot; aria-label=&quot;your name permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Your name&lt;/h1&gt;
+&lt;div align=&quot;center&quot;&gt;
+&lt;p&gt;&lt;em&gt;Thank you for reading my resume. If you want to contact me, Please send me an email.&lt;/em&gt;&lt;/p&gt;
+&lt;/div&gt;</content:encoded></item><item><title><![CDATA[Draft]]></title><description><![CDATA[Draft Post]]></description><link>https://duarbdhks.github.io/development/draft/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/draft/</guid><pubDate>Thu, 03 Jan 2019 16:21:13 GMT</pubDate><content:encoded>&lt;p&gt;Draft Post&lt;/p&gt;</content:encoded></item></channel></rss>
