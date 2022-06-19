@@ -6,8 +6,6 @@ thumbnail: { thumbnailSrc }
 draft: false
 ---
 
-# HTTP/2 에 오기까지..
-
 1. [개요](#개요)
 2. [HTTP?](#http)
     - [HTTP/0.9](#http09)
