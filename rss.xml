@@ -1,0 +1,936 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[YGW Develop]]></title><description><![CDATA[Blog posted about ...]]></description><link>https://duarbdhks.github.io</link><generator>GatsbyJS</generator><lastBuildDate>Sun, 19 Jun 2022 08:19:25 GMT</lastBuildDate><item><title><![CDATA[HTTP/2 까지 변천사]]></title><description><![CDATA[HTTP/2 에 오기까지.. 개요 HTTP? HTTP/0.9 HTTP/1.0 HTTP/1.1 HTTP/1.1 동작 원리 HTTP/1.1 단점 HTTP/1.1 단점 극복 방법 SPDY HTTP/2 Multiplexed Streams Header…]]></description><link>https://duarbdhks.github.io/network/http2/</link><guid isPermaLink="false">https://duarbdhks.github.io/network/http2/</guid><pubDate>Sun, 19 Jun 2022 13:42:00 GMT</pubDate><content:encoded>&lt;h1 id=&quot;http2-에-오기까지&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http2-%EC%97%90-%EC%98%A4%EA%B8%B0%EA%B9%8C%EC%A7%80&quot; aria-label=&quot;http2 에 오기까지 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/2 에 오기까지..&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#%EA%B0%9C%EC%9A%94&quot;&gt;개요&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;#http&quot;&gt;HTTP?&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#http09&quot;&gt;HTTP/0.9&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#http10&quot;&gt;HTTP/1.0&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;#http11&quot;&gt;HTTP/1.1&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#http11-%EB%8F%99%EC%9E%91-%EC%9B%90%EB%A6%AC&quot;&gt;HTTP/1.1 동작 원리&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#http11-%EB%8B%A8%EC%A0%90&quot;&gt;HTTP/1.1 단점&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#http11-%EB%8B%A8%EC%A0%90-%EA%B7%B9%EB%B3%B5-%EB%B0%A9%EB%B2%95&quot;&gt;HTTP/1.1 단점 극복 방법&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#spdy&quot;&gt;SPDY&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;#http2&quot;&gt;HTTP/2&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#multiplexed-streams&quot;&gt;Multiplexed Streams&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#header-compression&quot;&gt;Header Compression&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#binary-protocol&quot;&gt;Binary protocol&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#server-push&quot;&gt;Server Push&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#stream-prioritization&quot;&gt;Stream Prioritization&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&quot;개요&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EA%B0%9C%EC%9A%94&quot; aria-label=&quot;개요 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;개요&lt;/h1&gt;
+&lt;p&gt;HTTP 는 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;Hyper Text Transfer Protocol&lt;/strong&gt;&lt;/span&gt; 의 약자로 Hyper Text(&lt;U&gt;링크를 통해 다른 문서로 연결될 수 있는 문서&lt;/U&gt;)를 Transfer(전송하는) Protocol(규격이 정해진 규칙 체계) 이다. 즉, 웹에서 클라이언트(브라우저)가 웹 서버(httpd, nginx, apache 등) 정보를 주고받을 수 있는 프로토콜이다.&lt;/p&gt;
+&lt;p&gt;주로 글 위주로 구성 된 예전의 웹 페이지와는 달리, 현대는 이미지 용량이 매우 커졌고 동영상의 수요와 공급도 많이 증가했다. 그러면서 기존의 통신 프로토콜도 변경해야 할 필요성을 느끼게 된다.&lt;/p&gt;
+&lt;p&gt;변경 내역을 확인해보면서 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;HTTP3 까지 어떤 것들이 변경되었고, 왜 그렇게 변경되었는지&lt;/strong&gt;&lt;/span&gt; 확인해보는 것이 목표이다.&lt;/p&gt;
+&lt;h1 id=&quot;http&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http&quot; aria-label=&quot;http permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP?&lt;/h1&gt;
+&lt;h2 id=&quot;http09&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http09&quot; aria-label=&quot;http09 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/0.9&lt;/h2&gt;
+&lt;p&gt;HTTP/0.9 는 One-Line Protocol 로 불린다. 이 초기 HTTP 는 버전 번호가 없는 상태로 발표되었다. HTTP 는 요청이 단일라인으로 구성되며 GET 메서드만 존재했다. 서버에 연결되면 프로토콜, 서버, 포트는 불필요해지기 때문에 아래 그림과 같이 단순한 형태를 띄었다.&lt;br&gt;
+이 때는 Header 도 없었는데, HTML 만 전송될 수 있음을 의미한다. 또, 요청에 대한 상태나 오류코드도 없었다.&lt;/p&gt;
+&lt;span class=&quot;gatsby-resp-image-wrapper&quot; style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 693px; &quot;&gt;
+      &lt;span class=&quot;gatsby-resp-image-background-image&quot; style=&quot;padding-bottom: 64%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAANCAYAAACpUE5eAAAACXBIWXMAAAsTAAALEwEAmpwYAAABxElEQVQ4y5WT3W7TMBSA7SR2fpqkSeo0P25IBWydKsaegAsueQXekDtegJsNLiYWEDcjju20Q1zwGNhdpgFboxLpky0d6/PxOScgQujyOJ7c1AUS1sKVAAIGAGg1hmGwOI55WZYiyzIRBEE3xNg/fFf0ig/g+cT/+vak/PXmlf/De01+QuteiBBilFJRVZVYrVZ9nudiRCgV5wrwWaFvvtYBAxp3h9o9sEek7SD8CJSgSXzSV+kzmQS5nOCIz6cLmUVPFJVEFmYQwh17ZH8KPwHP9b4cHR1vabEQJ6t1f/bybFMWVLxYn26mYcT3CPYL1c0NsixhWmbrum6nC48xYo5j32XVjmT2UKi+KwUfCtv+Z+0eCg1oNqEXyzyuRBFTOZ9mu5UmlaxILX0n6IZGHZahAWDzNCLbNaF9YPvcACZDBu5s0+kcy+0ggOyALO+Ftm03BSGbpZo3bGNW0lKkKeHpPOX1spZhGHZ1XUuM8WFPxghd0dmsP62X/SwIlWjOkyTRzWFkRrooijo13Nw0zbH66vqL3RxCAL4FCN0ktt17liWHBj2GGEHHt4pL3eX3O/Ptb3MBb/d/ocZHrxcjnA8j8+43mr/sSsNYJtgAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;&gt;&lt;/span&gt;
+  &lt;img class=&quot;gatsby-resp-image-image&quot; alt=&quot;http09&quot; title=&quot;http09&quot; src=&quot;/static/6fae01d4da3f39481c78f768b09b87ae/61c63/http09.png&quot; srcset=&quot;/static/6fae01d4da3f39481c78f768b09b87ae/5a46d/http09.png 300w,
+/static/6fae01d4da3f39481c78f768b09b87ae/0a47e/http09.png 600w,
+/static/6fae01d4da3f39481c78f768b09b87ae/61c63/http09.png 693w&quot; sizes=&quot;(max-width: 693px) 100vw, 693px&quot; style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot; loading=&quot;lazy&quot;&gt;
+    &lt;/span&gt;
+&lt;h2 id=&quot;http10&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http10&quot; aria-label=&quot;http10 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/1.0&lt;/h2&gt;
+&lt;p&gt;서버와 브라우저에 기능을 추가했고, 상호운용성 문제가 일반적이었다. 1996년에 이러한 문제를 해결하고자 일반적인 관례들을 적은 문서를 발행했고, 이것을 &lt;code class=&quot;language-text&quot;&gt;RFC 1945&lt;/code&gt; 라고 하며 HTTP/1.0 으로 정의하게 된다. HTTP/1.0 의 특징은 다음과 같다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;버전 정보를 명시하기 시작&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;응답에 status code 추가&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;브라우저가 요청에 대한  성공과 실패를 구별&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;요청과 응답에 헤더 개념 추가&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;메타데이터 전송 허용&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;유연성 및 확장성&lt;/p&gt;
+&lt;span class=&quot;gatsby-resp-image-wrapper&quot; style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 678px; &quot;&gt;
+      &lt;span class=&quot;gatsby-resp-image-background-image&quot; style=&quot;padding-bottom: 96%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAATCAYAAACQjC21AAAACXBIWXMAAAsTAAALEwEAmpwYAAACnElEQVQ4y5VTx3bbMBBkr6DYiyh2WrEo8dm33HPOOR+d4hefYhGFTC5JPiOAZPnZsi0rhyHAXWC2zIIzRfHzlTe77Qrlu9Yat5wqfOU47ssBrut+y7LsJkmSG8uynvheRKAo06dm8ffje/O38yH4w1vSSB2IAjNEUTQtl8tfRVH8jON44nkeH3yvgLt7hB88x295XtjS/QF3R9i+AW5wQYCL6GJMvJLMdA/NvYrEbk5SupqaBUVRHNi5x6CZPrPtCEVBHOq6JlEY46ZuSbfqxjwvcF01JEtzXFUVSdMU0x5i0zThG9kNnCAIw2azGbNsgfu+H9fr9Tifz3d72jvCfCxgnueYgfmYfbVajSwQFQ0FQYDuM96VvNU0DSqKMhiGsVtZiWxldkM3oKqqO5skSYMsy3v7/VmWELM/lHxGk/8Hw47QkAEMQYIDEGHPCnA0i3FkxzhxU2IbDmJZHAvxqihssyjDsW2LaR7HRBN1aKoAmgqAM81BqqTBM7LaPpCySMuuHuPMx04wQ6w3oiQM1syCtmtDYAGYUCF830dhGCIAAHQcBzGBdF2HT8gOKneX3VjmJbZtB7ZtS5jCTNmqLEnbNGS97nb/bALoa8GMkKnNxHpGyDKs24bUlMin8peU5Pr6egqjGPthghdFTZarfozihAa04b2ir5fMPhd5Qfq6mTw6U57noZRG5+nAAzfCGnCQYQdIkJThiGR4gWxPGJsAXwThaAOAOPqOZVkZFDpvEm2HRsvSNXU4kdExuK1IL1dFQa76fqrylDRtTdJsjpM0xpfdu3HTr0dZlaC4H59TZHtCVRThxg+nuWniLLSIZRnIDgF2Y4sEC5tYnoFtH2BdkeE5hEMCLNy43hgZJj7zNWxPEL944RROnvkHnhBtn0zl8oUAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;&gt;&lt;/span&gt;
+  &lt;img class=&quot;gatsby-resp-image-image&quot; alt=&quot;확장된 Request, Response Message&quot; title=&quot;확장된 Request, Response Message&quot; src=&quot;/static/63ca083ea928d2ca9e2a13b34a524307/38cea/http10_request_response.png&quot; srcset=&quot;/static/63ca083ea928d2ca9e2a13b34a524307/5a46d/http10_request_response.png 300w,
+/static/63ca083ea928d2ca9e2a13b34a524307/0a47e/http10_request_response.png 600w,
+/static/63ca083ea928d2ca9e2a13b34a524307/38cea/http10_request_response.png 678w&quot; sizes=&quot;(max-width: 678px) 100vw, 678px&quot; style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot; loading=&quot;lazy&quot;&gt;
+    &lt;/span&gt;
+&lt;p&gt;확장된 Request, Response Message&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Content-Type 을 명시하면서 다른 타입의 문서도 전달 가능해짐 (ex. text/gif)&lt;/p&gt;
+&lt;span class=&quot;gatsby-resp-image-wrapper&quot; style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 690px; &quot;&gt;
+      &lt;span class=&quot;gatsby-resp-image-background-image&quot; style=&quot;padding-bottom: 78.33333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAYAAAAWGF8bAAAACXBIWXMAAAsTAAALEwEAmpwYAAACPElEQVQ4y51TyXLTQBDVvjvyyNp3x5IX4sLAjTN3+FwuEP8FRLPISZziwFcwrRDiFAYHDq+6qnvmTXe/N4KjKB9X7ujbstCodW7tBEPCgiBccXQQJ5MJqeuaRVFEXNfFoih2B/UH/DovRIZ++aFMv79/69z47/w7caySoSDeH0jTlOZ5TrMso0AqSdIxwsOc8JmDcXzh+PrktT/jb6TCdmx7N1XYsjyY9cgJaDwuWYwqlvtNbxsj8nPMU7h/QFGUbdM0e4Q8XFc1WyyWfdO0LE0ymmcFhf2VZTmMbds2Ptk1EC4Wi30QBPji4kW/Xq973/fJZrPZzWYzNp/P++l0ygBxHFMAb4AB+E4pv0dAuMMdbk3D3GmaduXYDjYMA4uC2EHkeWyaJrYsC/N6p6pqBxFq0C1EyAEOCS85+gNB/hePojiaex2NUhKdJdQ/CzhCmqCUJShjroWILCvD4qHzBxGOCPU4Mkq0fZS5NE4mvS7xMTU+pmpj1xwTXdbxP1lIUeRtOQ/vxpGJz3yTWHw3kix1yEPEcixsOzYOuaFBKI/nEEKDCEVRUMdx8G9+BJWX89V+Wp2TsYtw27YM1IXYNjNW5Bl98/rVbrVa9VVVMfg58AWTJKG6rndHCcuyuK2nNbdERMFzm83LnTcJCApzOglTWkzbPggjOuIdgeonRgbC8pb7ajAvGLnhnY1cRAw3obLlEclE5AhJd/QLyrK85Xu55gamYRgSMCoQQ7eaKnfPInkK4dMJHz6XaMAP82Y1FA2ZbgsAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;&gt;&lt;/span&gt;
+  &lt;img class=&quot;gatsby-resp-image-image&quot; alt=&quot;다른 타입의 content-type&quot; title=&quot;다른 타입의 content-type&quot; src=&quot;/static/a127a100e8abd08fa3f6a51aa553394f/1e043/http10_content_type.png&quot; srcset=&quot;/static/a127a100e8abd08fa3f6a51aa553394f/5a46d/http10_content_type.png 300w,
+/static/a127a100e8abd08fa3f6a51aa553394f/0a47e/http10_content_type.png 600w,
+/static/a127a100e8abd08fa3f6a51aa553394f/1e043/http10_content_type.png 690w&quot; sizes=&quot;(max-width: 690px) 100vw, 690px&quot; style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot; loading=&quot;lazy&quot;&gt;
+    &lt;/span&gt;
+&lt;p&gt;다른 타입의 content-type&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&quot;http11&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http11&quot; aria-label=&quot;http11 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/1.1&lt;/h1&gt;
+&lt;p&gt;HTTP/1.1 는 HTTP/1.0 이 나온지 몇 달 안된 1997년 초에 공개되었습니다.
+HTTP/1.0 의 모호함을 없애고 명확한 정의를 내리게 됩니다.  &lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;커넥션의 재사용 가능&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Keep-Alive header 를 통해 기존 연결과의 handshake 생략 가능&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;pipelining 추가&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;이전 요청의 응답을 완전히 전송되기 전에 다음 요청을 가능하게 해서 통신 대기 시간을 낮춤&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;청크 된 응답 지원&lt;/li&gt;
+&lt;li&gt;추가적인 캐시 제어 매커니즘 도입&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Language, Encoding, Type 등을 포함한 컨텐츠 전송&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;가장 적합한 컨텐츠를 교환&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Header 의 “Host” Field&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;동일한 IP 주소에 다른 도메인을 호스트하는 것이 가능해짐&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;span class=&quot;gatsby-resp-image-wrapper&quot; style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1085px; &quot;&gt;
+      &lt;span class=&quot;gatsby-resp-image-background-image&quot; style=&quot;padding-bottom: 69%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAOCAYAAAAvxDzwAAAACXBIWXMAAAsTAAALEwEAmpwYAAABzElEQVQ4y42TW1OCQBTHFyQuioAYgkLI1RnH0Ze+fw9NvfRUyVSwLMz0STpnxwtWWg//OSssv/M/F8mtp9+5mfpECLk/J8/zHg3DeLh05yBTVd8s0/xU5EGjyv1GIAKDF7UgCAzV6/WYoihMFEX+HPQ9ds8tGRj2q+v4bH4T1cEsrF3XpY7jVKZpcg2Hw1JV1RIuv1/Qxy6WxHa8IpxHbZomLE5ilqYpi6KI+b6P8Ho6nXJBEoq/J5MJis5msxpawZ9DOyrbtqmmaZTMw7DI87xdLpcNwpIkYYvFgp/RIV5G6bp+iP1+H51X0IYS2rIXuqyI67lbyMQwIzrxA78OgoBnByBFqGVZtHtGjUYjiqBduftYEYGIz5IgUUmUSkm8gheHS/xix8EP7UDlCVA3le312Gq0q0E11AzaA3Anaxd+TqfAiXu9vZkHDTYaS8ZSLoDKX3Rasu8HRZ7lLQ4jjmOWZRnDHoZhWGNfJUnqlncOegTChwXAWgSsVqsGp73ZbNr1et0ieL8yONF/AeGDAlakRXdYNq7DeDzmO4eTxRbIsvwX7AiE7FsorYFl5k4QivEfw/jeW4yUwP/0BTa8Bu2XFzcfXVV/OPrV5Rf+vQwk+NDdXgAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;&gt;&lt;/span&gt;
+  &lt;img class=&quot;gatsby-resp-image-image&quot; alt=&quot;http1.1 헤더&quot; title=&quot;http1.1 헤더&quot; src=&quot;/static/dfa16341bca34b41ef7b4f641b10fcd1/6d74e/http11_header.png&quot; srcset=&quot;/static/dfa16341bca34b41ef7b4f641b10fcd1/5a46d/http11_header.png 300w,
+/static/dfa16341bca34b41ef7b4f641b10fcd1/0a47e/http11_header.png 600w,
+/static/dfa16341bca34b41ef7b4f641b10fcd1/6d74e/http11_header.png 1085w&quot; sizes=&quot;(max-width: 1085px) 100vw, 1085px&quot; style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot; loading=&quot;lazy&quot;&gt;
+    &lt;/span&gt;
+&lt;p&gt;⇒ 많은 내용들이 담겨지고, 특히 헤더가 무거워진 형태의 메세지를 확인할 수 있다.&lt;/p&gt;
+&lt;p&gt;다음은 관련 된 참고 사항이다.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HTTPS&lt;br&gt;
+TCP/IP 스택을 통해 HTTP 를 전송하는 대신, 암호화 된 전송 계층인 SSL 을 이용하여 전송한다. 웹에서 주소록이나 이메일, 사용자의 위치 정보나 개인정보 등에 접근하게 되면서 보안의 중요성이 대두되게 되고, SSL 은 TLS 로 발전한다. 현재는 SSL 이 아닌 TLS 를 사용하지만 보편적으로 SSL 이라 부르기 때문에 SSL/TLS 를 혼용하여 부른다.&lt;/li&gt;
+&lt;li&gt;RESTful API&lt;br&gt;
+2000 년에 HTTP 사용에 대한 새로운 사용 패턴으로 REST 가 등장한다. 표준 규격이 없다는 단점은 있지만, 2010 년 부터는 매우 일반적으로 사용되고 있다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;http11-동작-원리&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http11-%EB%8F%99%EC%9E%91-%EC%9B%90%EB%A6%AC&quot; aria-label=&quot;http11 동작 원리 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/1.1 동작 원리&lt;/h2&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1185px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 65.66666666666667%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAANCAYAAACpUE5eAAAACXBIWXMAAAsTAAALEwEAmpwYAAACGklEQVQ4y21T2Y7bMBDz//9W0ZeixRZFX4rsNnfj+JIPWbJ8hCXlGEiBChAMDTUcDkdOwGX7HmVZoigKVGWlELz3eDweMHWNqqoi3rXtig1D/PbMS9MU9/s97oX3ExtG3BqLgkRl08D++In2y1e4cURtmSCsKGFI1r19R/vtDX6a0PuBWI+qblCwqN29o/30GYkbAnbHM6qmjUmBFzyrSVFDwt3pgpKxprMIlYETZioMFPLroLyO5xojc93limSZZwzeYZgXuGlB2a7EWZZhpErvHOw4wy8P5FSyYcpzvYVnXs88Yy1M1yGZKL9UZSodRUrvLMHr9Ro9kofBecwTCdyKnc/nWCzmsYvA9j3zu41Qw3hoCCR48Dxzi3Cg+afTEellD5P9QSAeGLvdbpipMLun8JbtdxXmwWNikWRZljgxEdEY1Hke/dNkhbUc1On3B9LzHqfDB+Pra5g5UT4F4LDHcvxAvX9nPH+2TE9mqaPRqqInoy2FRX5nW2w7uNVTxh19jZ3lGTqTwRYpRs5Bfj89LBFmH7dUKSb/IiHVTmxPgib6GEKImO7knLgECFPe+E/LjE5LQGXWlqVEPgk3xsQ2RaYkEQqbiUmtHvWGJQIM35UbWl4YI6BLW1taUioSLd3XpDchOrfPP0grtpxyWjUfp/4IVdFW0kb4ukSg56Hv61KH2skWkCIpVVDVpfTVDm0txaT4f5i+fwGw8OyxiICOwAAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http11_principle&quot;
+        title=&quot;http11_principle&quot;
+        src=&quot;/static/e9c968e8cc91f7e8ed263a3838133d15/471ef/http11_principle.png&quot;
+        srcset=&quot;/static/e9c968e8cc91f7e8ed263a3838133d15/5a46d/http11_principle.png 300w,
+/static/e9c968e8cc91f7e8ed263a3838133d15/0a47e/http11_principle.png 600w,
+/static/e9c968e8cc91f7e8ed263a3838133d15/471ef/http11_principle.png 1185w&quot;
+        sizes=&quot;(max-width: 1185px) 100vw, 1185px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;왼쪽은 HTTP/1.1 Baseline 통신 규약이고, 오른쪽은 Pipelining 기능이 도입 된 HTTP/1.1 통신 과정이다.&lt;/p&gt;
+&lt;p&gt;HTTP/1.1 의 동작은 기본적으로 Connection 당 하나의 요청을 처리하도록 설계되어 있다. 동시 전송이 불가능하고 요청과 응답이 순차적으로 이뤄진다. 또, HTML 문서 안에 포함 된 다수의 리소스(image, CSS, script) 를 처리하려면 요청할 리소스 갯수에 비례해서 Latency(대기 시간)는 길어지게 된다.&lt;/p&gt;
+&lt;h2 id=&quot;http11-단점&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http11-%EB%8B%A8%EC%A0%90&quot; aria-label=&quot;http11 단점 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/1.1 단점&lt;/h2&gt;
+&lt;h3 id=&quot;holheader-of-line-blocking-blocking&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#holheader-of-line-blocking-blocking&quot; aria-label=&quot;holheader of line blocking blocking permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HOL(Header Of Line Blocking) Blocking&lt;/h3&gt;
+&lt;p&gt;HTTP/1.1 의 pipelining 은 한 커넥션에 순차적인 여러 요청을 연속으로 하고, 그 순서에 맞춰 응답을 받는 방식으로 지연 시간을 줄였다.
+하지만.. 순차적으로 응답을 받다보니 이전에 받은 응답이 길어지면 그 이후의 응답은 지연된다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 260px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 213.84615384615384%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAArCAYAAAB4pah1AAAACXBIWXMAAAsTAAALEwEAmpwYAAAD3UlEQVRIx81X71PiRhjmz7+Z9uY+3Ex7X3pfvC+1elZR54bqyRURB6meFRT8ARwIVESSkISEkM3T992YGDA455W56c68s5vNvs8+76/dJOGOx7i9vYWqarBtG5qmYUxz3DzPI0FEPCncBoMBTNPEcDiE4zhyPBqNkOjddpFK/YHk+gaSyQ2srSah9BWpJIQXggSArivku/1cDgsL75DZ3UM6ncbS8gq+NK6REEJAUVQMdJ121WhHg4CYoYiIF449+ICmqaPf78GyLRiGQRaqZJmLBO6b5wlYQwFnBDKBnknPdQmCZGQ/jAXP+x6Rc4bh0JwbwCAR+MSyhmh+cXD0Vx8byUOs/p7H0mIGK8s55PfbSH0oYnP9CJsbxySfsb5WQPFvE426Tb6zQp+HgCOi0WyYKJ+qyPx5hu2tY2Q+nWIve4Gz0h32disEfEX9OXYzZWRJalc2WteW1H0EyJHq9XrQdYPGY1o09nvbkb7xFfCouWQ3Z0cMw1GYCro+kOmjU6A4LRRFkc/sfO41TaV1/rher0+k2QRgv9+XIBwxBmYFBrMsSzJnQN6UN+H1zUYDvy0t07pBPCAr+vknpBksPpguwQMw3oTBFdp47f0SlLu7pwFnNfZXUB0s1csL/PTrOrqa6ROJAjIbDkwQoEACM1mYKT/L3hzSyjF+rngoqd5jQN69UCig3W7L3RmAlZk5O53fx7VXVeBEupBqyMOkyWzOrMbvJ3zKgaOyO17cglr/x/ehmMrDVqslF7PSQ4poIVvekIXZeiSyql+/AYqnstq5LkNANqtUKsnkZibMKIhcXBMMykR+eQdRvrhnKKK1bMVGlY8r3iwMBgdJ8xN/wONWG869q7zpoFQqFXS7XRkUrgQWw9Bl77rjUKLNIlfZEWsiPnTRaOyQcoYA98n0NDHK0XmXJxccyHEgqrJL6wukdUhHXpHqPab0LMshv+3TKI1OZxE7H3/E9vYPODt7i3z+NTKZV/iUfinnUqkXZMkyrd0ivRzpiceAtk2VMryhUY9e9GQP3N1LdBydoxPb6hKgE196dkh9UuLmgnm2bObxFUSar4OHy2mWiDA7RnFBCargIfeelqjeVwI+3aL5Gws4afLzAGN9+F8Yzh3w+5gcnHdzBZyryd/qw5l5OHeGc/fh3E3+//vwWxny/RPrQ76kJr/+J4U/oKYluH6DrwoJOM3oa9g9xThkGP0Hubm5ocupjFKxhMvLK9RqNZTLFVSrVZyfX1Bfk9+G/NsRBQsZTk92Oh00m9f04dQh8K58zmazdPsd4OSkiMPDI7oVd8J/lqhViWnazzV5ev2/beEOeRHVFmIAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http11_weakness&quot;
+        title=&quot;http11_weakness&quot;
+        src=&quot;/static/cc4d372d9a7c2990c2a590e06ef0bfd8/86c28/http11_weakness.png&quot;
+        srcset=&quot;/static/cc4d372d9a7c2990c2a590e06ef0bfd8/86c28/http11_weakness.png 260w&quot;
+        sizes=&quot;(max-width: 260px) 100vw, 260px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;예를 들어 3개의 이미지를 받기 위해 아래와 같이 순서대로 요청을 보냈다고 했을때, 이 순서에 맞게 응답을 받아야 한다.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; --- a.png --- &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;
+                &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; --- b.png --- &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;
+                                &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; --- c.png --- &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 362px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 112.99999999999999%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAXCAYAAAALHW+jAAAACXBIWXMAAAsTAAALEwEAmpwYAAACkUlEQVQ4y5WV224TMRCG96Z3VeFF4NHgvQBB4QL1olUkFCGFKlVTpQlVc1BpyWaPWXu9h+zpZ+zNYbNJ2jCSlXhsf54Zz8xqRVFgOepS1b20vhStOmEegz7R4TjOanP1MiEELMtSI4qinVCtKHLwhGEWu7i9v8X1zTWGo8EmMC//TyYTdLtd9Ho9eJ63G5hkCVpWCxf6OUbBEHfmPWzOkKUF0iyTR7bcTJJkA1b1QqvHwJha5LoP1+WYzXwwJsjViCApMrognoekK63L8xz1N9DUBGuFjI/jMAg/gM9FCfUEHJvRGkevbyKZR9glkqHVTbYsG5wHZEUA1+HgZK1DIGmpZQp0Ok/o929h27aKqWEY6ncZ0wVwHQ/G2OI66VKGKJwjDOak9+kyH1dXDzg7+45fl5dotVpoNptoNBoKXAGuLZQ3ydhsS46M1H8fLQzevkF0cb70czsP9wGrAS8WulB4GB8dIfr8qdyTpmpdxl4+2n8DfW+G8ckJoq+npUkEkaB2u42U4C8C18m9AFLKjI+PCfhlBZQgmfA7X/kgC1+/QvTtdMPlMAwPAwKbQEFVNNI0hB8/rIBSdF1X5w6ysCqe4+Lu/TuEN51yz2LvYDB4BphV04Zqd54goMTmlOj21AZbxlaWXq1BbAE552XWETQOYwgFYuBUeoKS2zVdimOl09QahFbUWpT+pMN8MBHIWp5xCKpjOTjVNHcl0KEa59uPtgLWYjR5pPocG4hESEBfuelTPcu5sjqO4fv+8x07oSefq005jD8GnnqPytWAGoSMX/WgzLkgCPYDsyyF2+/B+NkEv/uNTuMHzOFk7/dDdhnTNPcD60rDmG5A6g1UdqNlR9rrcv3Qxlw14MO+glL+AYG29EY8W9EKAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http11_blocked&quot;
+        title=&quot;http11_blocked&quot;
+        src=&quot;/static/ad391267d951f7e8897831963985d0bc/10600/http11_blocked.png&quot;
+        srcset=&quot;/static/ad391267d951f7e8897831963985d0bc/5a46d/http11_blocked.png 300w,
+/static/ad391267d951f7e8897831963985d0bc/10600/http11_blocked.png 362w&quot;
+        sizes=&quot;(max-width: 362px) 100vw, 362px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;그런데 a.png 의 응답이 길어지면 뒤에 있는 응답도 그에 따라 지연되게 되는 문제가 생긴다. 이는 pipelining 의 큰 문제점 중 하나다.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; -------------------- a.png ------------------ &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;
+                                                &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; -b.png- &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;
+                                                          &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; --c.png-- &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&quot;rttround-trip-time-증가&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#rttround-trip-time-%EC%A6%9D%EA%B0%80&quot; aria-label=&quot;rttround trip time 증가 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;RTT(Round Trip Time) 증가&lt;/h3&gt;
+&lt;p&gt;HTTP/1.1 의 동작은 기본적으로 Connection 당 하나의 요청을 처리한다. 그래서 매번 요청별로 Connection 을 만들고 TCP 상에서 동작하는 HTTP 특성 상 3-way Handshake 가 반복적으로 일어나게 된다. 이는 불필요한 RTT 증가와 네트워크 지연을 초래하여 성능을 지연시킬 수 있다.&lt;/p&gt;
+&lt;p&gt;참고로, RTT 란 요청(SYN)을 보낼 때부터 응답(SYN+ACK)을 받을 때까지의 왕복 시간을 의미한다.&lt;/p&gt;
+&lt;h3 id=&quot;무거운-header-구조&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EB%AC%B4%EA%B1%B0%EC%9A%B4-header-%EA%B5%AC%EC%A1%B0&quot; aria-label=&quot;무거운 header 구조 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;무거운 Header 구조&lt;/h3&gt;
+&lt;p&gt;HTTP/1.1 은 발전을 해오면서 헤더에 많은 메타 정보들을 저장하게 되었다. 사용자가 방문한 웹페이지는 다수의 http 요청이 발생하게 되는데, 이 경우 매 요청시 마다 중복된 헤더값을 전송하게 된다. 또한 해당 도메인에 설정된 cookie 정보도 매 요청시마다 헤더에 포함되어 전송되어 성능을 저하시킨다.&lt;/p&gt;
+&lt;h2 id=&quot;http11-단점-극복-방법&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http11-%EB%8B%A8%EC%A0%90-%EA%B7%B9%EB%B3%B5-%EB%B0%A9%EB%B2%95&quot; aria-label=&quot;http11 단점 극복 방법 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/1.1 단점 극복 방법&lt;/h2&gt;
+&lt;h3 id=&quot;image-spriting&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#image-spriting&quot; aria-label=&quot;image spriting permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Image Spriting&lt;/h3&gt;
+&lt;p&gt;웹페이지를 구성하는 이미지 파일 요청 횟수를 줄이기 위해, 하나의 큰 이미지로 만든다음 CSS 로 좌표 값지정해서 해당부분만 보여주는 방식&lt;/p&gt;
+&lt;h3 id=&quot;domain-sharding&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#domain-sharding&quot; aria-label=&quot;domain sharding permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Domain Sharding&lt;/h3&gt;
+&lt;p&gt;다수의 Connection 을 생성하여 병렬로 요청을 보낸다. 하지만 브라우저 별로 도메인당 Connection 개수 제한이 존재하기 때문에 근본적인 해결책이 아니다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 412px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 84.33333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAARCAYAAADdRIy+AAAACXBIWXMAAAsTAAALEwEAmpwYAAADUUlEQVQ4y21Uy47TSBTN182GD0CaJUJiyWI0GxYsEOsREgghFqNBwIIVj2lASpOmn+l0k3YSx078SOfpJE7sxOnE79g+3KqGqBtR0lHdXEfnnrr3VOVAazwewxgamFpTGIaB0WiE2WyG4WiIwWAA0zSRZil+t7IsQ5qm9D3jcY4lG40GymdliJKIk9MTCIIAUayhVmOoolKtoNfvYzQe8WLT6RTD4ZBgwPe9a8Q5FiRJgjiOCDH/wJYf+FgulwiCgP8xiiKEYYggDLBer+HTPiLixWoFZ+XyHFfIgsViQZV8eJ7HqzOoqgpJlqBpGmzbxnw+521wXRfVahWf83kESQqPClmLJUIShJ+E/UEfmq7znfVzMpmg0+lwhRdUjJFtCKkoI3z34T26/R7vfbvX/UEI5NgxmSLLtjB35jSAMSzLQrfb5cpZznEcHjsUs2OXy2W8JcL5woEzn8EgERuFaZpRn0L6Y8R31/Xo+AFN14CiqOgQsUftYN9YPoxiTKY22t0+wnWCIF7DpSLr5EcPM2aHLL4OrC+RRcjSaJPjMRiYhdgwYyTMMoTNlH3PocbXqWcazs8VtM6baCoiuj2d5/r9FqltQ9dlTG0Tr3cVPNkS8fxzFbZjcUekV0hz7spGVRQgNxuo01QlWcbJt1M0mk0+ZUVV0FAUVGsVGOYUf704w81/DnDryQGGE5MTXlWZc4hwr5jH/nEBB4Sjk6/Y3v2Iw9JX7BcLKJ7u4vjbPr5QTm5JuP/mEHeef8Hdf/PomiNOGFMvN4QzfwlJkUmRTEdtQm7IqNDtYP5jv/WWTipVsoqAwdjE3y8F/PnoELefHmFI07+6eA/nSwt7R3mu7LC0g4NSAfmdLa6M5UrlfRwTCnufoHYaeFOq41nhDP/tCtgWmtirtbEj6JjYl/3MeasZ9apOTW+RIhUqGVys18norUtoOlRCTRRxQUa/uu69KuOPBwXceLiNYl27JORTVkXomsTRpknLksBjTZXQ0mQeS5Sb2WMksY8wcGl38bbYxOOtCh7/X0aPzM0J0yyhZsbXwD33Sy5LyXMJM/cSq6VD9/4Ckb9AEl2QTVckosYfCP7a/Ir0NzkOZhF6ENbshtDN0VttejNNmnJKD8iMv1rfAUBU5taWC/ssAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;domain_sharding.png&quot;
+        title=&quot;domain_sharding.png&quot;
+        src=&quot;/static/d1a6f149584e948130c2bca5a6022f4c/9e32a/domain_sharding.png&quot;
+        srcset=&quot;/static/d1a6f149584e948130c2bca5a6022f4c/5a46d/domain_sharding.png 300w,
+/static/d1a6f149584e948130c2bca5a6022f4c/9e32a/domain_sharding.png 412w&quot;
+        sizes=&quot;(max-width: 412px) 100vw, 412px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h3 id=&quot;minify-cssjavascript&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#minify-cssjavascript&quot; aria-label=&quot;minify cssjavascript permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Minify CSS/javascript&lt;/h3&gt;
+&lt;p&gt;http 를 통해 전송되는 데이터 용량을 줄이기위해 CSS, javascript 코드를 축소 압축시킨다.&lt;/p&gt;
+&lt;h2 id=&quot;data-uri-scheme&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#data-uri-scheme&quot; aria-label=&quot;data uri scheme permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Data URI Scheme&lt;/h2&gt;
+&lt;p&gt;Data URI Scheme 는 HTML 문서 내 이미지 리소스를 Base64 로 인코딩 된 이미지 데이터로 직접 기술하는 방식이다.
+이를 통해 요청 수를 줄인다.&lt;/p&gt;
+&lt;h3 id=&quot;load-faster&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#load-faster&quot; aria-label=&quot;load faster permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Load Faster&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;스타일시트를 HTML 문서 상위에 배치&lt;/li&gt;
+&lt;li&gt;스크립트를 HTML 문서 하위에 배치&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;spdy&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#spdy&quot; aria-label=&quot;spdy permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;SPDY&lt;/h1&gt;
+&lt;p&gt;웹 환경이 계속해서 바뀌면서 (리소스 증가, 다수의 도메인, 동적 웹 서비스, 보안의 중요성 등) 구글은 전송 지연 latency 문제의 해결에 집중하며 HTTP를 고속화한 새로운 프로토콜인 SPDY 를 구현한다. SPDY 는 &lt;code class=&quot;language-text&quot;&gt;speedy&lt;/code&gt;라는 단어를 기반으로 구글이 만든 조어이다.&lt;/p&gt;
+&lt;p&gt;SPDY 는 실제로 HTTP/1.1 에 비해 상당한 성능 향상과 효율을 보여줬고 이는 HTTP/2 초안의 참고 규격이 되었다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 676px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 43.66666666666667%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAACXBIWXMAAAsTAAALEwEAmpwYAAABwElEQVQoz22S626bQBCF/f6P0v5LpbZSFDWtHccC7PgCAYxtLjF3DL7FEBY4ncWJY6kd6bCj3eHTzpnt4CqapmnFo6prUgPLdvCydkEpatrj4hEEAQzDaOvrurn82/lIrkVoeJscSz+HHZet5u4r9q8l4l2BwXyP32MPt8IKA30PfX28XKiD/0YDwztCWhzRm/p4VCIIxoFgJcJ4g66k4u5hhNuuhB7lsm5dAelTMQZWlqiqqhWPiXnAz6ctbh5dfBdD/BhlcNMSuyTERBhA+HOP/q87TClf6eonkANeXA8O+RREMVwvQJ7nGGgZvvYifBMz3AgpvnRDLIIT9kEIqydi9SBCu+/DptWTdTBuMgcyAkbURkiwKNkgzbYoWQ3LNyFbU4iKgJE+hGxOEW8TJFkCZTnCRBUhzfptbq4N6uzsPd2wbn3xw6hdkzRD8cbg+BZ0cwbFGON5MYFGQA5Lsg00awZ1NYNMZ5olw/ZMMFafgYz886mNkICe7yMviva5BM4SjvYEfUweKRKs5yF2aYwdQW11iKUsYk5nvMa3DZw7vky5eX9P9WXO5VuB/HRAcTq24nldMaqp/tnntR9D+Qvv86GvQjPvFgAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;spdy&quot;
+        title=&quot;spdy&quot;
+        src=&quot;/static/a6fbe2e82a65c49a0eee8e87c58ecab8/9bb7a/spdy.png&quot;
+        srcset=&quot;/static/a6fbe2e82a65c49a0eee8e87c58ecab8/5a46d/spdy.png 300w,
+/static/a6fbe2e82a65c49a0eee8e87c58ecab8/0a47e/spdy.png 600w,
+/static/a6fbe2e82a65c49a0eee8e87c58ecab8/9bb7a/spdy.png 676w&quot;
+        sizes=&quot;(max-width: 676px) 100vw, 676px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;SPDY 의 특징은 다음과 같은데, HTTP/2 와 겹치는 부분이 많다. (자세한건 HTTP/2 에서…)&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;항상 TLS 위에서 동작&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HTTPS 로 작성된 웹 사이트만 적용 가능&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;HTTP 헤더 압축&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;요청이 많아질수록 압축률은 커짐. 대역폭이 작은 모바일 환경에서 효과가 큼&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;텍스트가 아닌 바이너리 프로토콜&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;파싱이 더 빠르고, 오류 발생 가능성이 낮음&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Multiplexing&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;하나의 커넥션 안에서 다수의 독립적인 스트리밍을 동시 처리&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Full-duplex interleaving &amp;#x26; Prioritization&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;다른 스트림이 끼어드는(interleaving) 것을 허용&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Server Push&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;⇒ HTTP 의 데이터 전송 포맷과 커넥션 관리 부분을 수정하여 TCP 커넥션을 효율적으로 쓰도록 하였다.&lt;/p&gt;
+&lt;h1 id=&quot;http2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#http2&quot; aria-label=&quot;http2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;HTTP/2&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;💡 The focus of the protocol is on performance; specifically, end-user perceived latency, network and server resource usage. One major goal is to allow the use of a single connection from browsers to a Web site.  &lt;/p&gt;
+&lt;div style=&quot;text-align: right;padding-right: 10%&quot;&gt;- &lt;a href=&quot;https://http2.github.io/&quot; target=&quot;_blank&quot;&gt;https://http2.github.io/&lt;/a&gt;&lt;/div&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&quot;https://http2.github.io/&quot;&gt;HTTP2 의 Github 블로그&lt;/a&gt;를 보면, HTTP/2 는 HTTP/1 의 확장으로 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;기존 HTTP/1 과 호환성을 유지하고 성능에 초점을 맞춘 프로토콜&lt;/strong&gt;&lt;/span&gt;이라고 쓰여있다.
+다음은 어떤 특징들을 갖고있는지 확인해본다.&lt;/p&gt;
+&lt;h3 id=&quot;multiplexed-streams&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#multiplexed-streams&quot; aria-label=&quot;multiplexed streams permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Multiplexed Streams&lt;/h3&gt;
+&lt;p&gt;&lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;하나의 연결로 동시에 여러개의 메시지&lt;/strong&gt;&lt;/span&gt;를 주고 받을수 있고, &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;순서에 상관없이 스트림&lt;/strong&gt;&lt;/span&gt;으로 주고 받는다.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;스트림(Stream)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;시간이 지남에 따라 사용할 수 있게 되는 일련의 데이터 요소를 가리키는 &lt;strong&gt;데이터 흐름&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;메시지를 독립된 프레임으로 조각내어 송수신한 이후 다시 조립하여 &lt;strong&gt;데이터를 주고 받는 원리&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;특정 스트림의 패킷이 손실되었다고하더라도 해당 스트림에만 영향을 미친다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 823px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 55.99999999999999%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAYAAAB/Ca1DAAAACXBIWXMAAAsTAAALEwEAmpwYAAABlElEQVQoz51STW+CUBD0f/fWn2Q84aEH60GJmhhTNfELQayKIggin1NmEYv21kk278Humzc7+2rX6xXaWodhbHA4HPAfpGkqQdSADBJZBs/zYFmWrEEQ4Ha7wbZt+cfLeDm/z+ez7JlPkuSJuHYOEigzB24QwdDXaLfbuVoDu90Ol8tFyLm6riuXdLtdTCYTbLdbHI9HhGGIwWCAXq9XKJxbHt6bS3wtDWjLBfp5crPZCCmJqKQaw+EQ8/lcavb7vRArioJms1kQJnGM+BbkHaeSHI1G0DRNDrA1KqsG1c1mM+i6/rChRJbbVrtvHz/oSWkyv1+jzJX5P0PJHnRAnKulZ1yjKHocqML3fRkGa3h5tUaGgshHZqo5a4RTPsHPVktaYss0nIOglwyi3++Lj6vVSiwhaBGjUGgvkH68IbTzQZjf6HY6kuQBPpHT6SRe8emQlBOdTqeSN01TlDYaDdTr9YIwjkLYB1Map+mqqkoxTWfxKzi08Xj8pJA2Me4P+xckcBxHiOnV62DKw8xTLX2ugjU/t9lHhN/7ZeMAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;하나의 연결로 여러개의 메시지를 주고받음.&quot;
+        title=&quot;하나의 연결로 여러개의 메시지를 주고받음.&quot;
+        src=&quot;/static/671e0c75f47ccc3185d2c2dcfb606f36/31aff/http2_multiplexing_message.png&quot;
+        srcset=&quot;/static/671e0c75f47ccc3185d2c2dcfb606f36/5a46d/http2_multiplexing_message.png 300w,
+/static/671e0c75f47ccc3185d2c2dcfb606f36/0a47e/http2_multiplexing_message.png 600w,
+/static/671e0c75f47ccc3185d2c2dcfb606f36/31aff/http2_multiplexing_message.png 823w&quot;
+        sizes=&quot;(max-width: 823px) 100vw, 823px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;
+하나의 연결로 여러개의 메시지를 주고받음.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 850px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 82%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAYAAAAWGF8bAAAACXBIWXMAAAsTAAALEwEAmpwYAAACrUlEQVQ4y21T2XKjMBDk//8sD8mLs5VK7DiOr4APQOhAEoLeHmF787BTpbIZ1D09PUMBRvAewxDlL6y1MDx932OOCcaYnJd7EmNKUErlOzGEnAvBQ3Udihgj6raFdgFxBGIM0J3CtVFQtkfH0xLc8bIyDjFNGNIIq/msNVrnEYjzkUWaBoVU77SBY0LO1UZUysCzsr3lys6zYI+DsSj7gIsf8NVaWOdQaYW9anEk8aJqUUgrbacJHKBDQm0DVTlYAsMwwviEto9ze6ZB7BVOJPlTlbzjoL2B7jU+yh2WuxUKR8LqUqNzkW7Rn3HMnh07SyVUSb8kJ/4l+ixFtk0Nez3AOYtTd8FPXSP0BsnqWWHdNjDDTDgJIb0Rb92YYNKAtTVU2sNR9UZbaNsg0RJP1Y3q6OuYB+NDRNFyIA1NN8OAlqci8Cy+UpEmec2c4qBs7/FRa/p9BaVyK3if5K0LuIcMrrAEN5yYEHZpJmxp9lW3VGQwDVyVacoKy6Yk2dyJdJCIYUsPwkDV2cMfenLlQyRwunk4yl6SbAwWQ3OE6xoEox5gscqzCyEWtfdfro2FqtnGMEuXAWiuUbAKEycoZwwug9M4ZbXZL7GEXp/PZ+x2O1RVlZc976EscvI2g5NTWY1V9aOdyJXy96+EBSeSyq+sksxgvV7jdDrlO4WjXzL+MfSYYo9k6lmdTHyaFQk4cX1+x9yJzkTL5TIrlOficr3ifNxh5HJK2wKUL+B/IaYfj0dcLpeHSvFN/BQP5dwU/iOQi/JCYrvdYr/fZyIBi5rn52e8vr5mkt+F5L1EcU9+f3/j6ekpk0hIkcVikQnEeFHy9fWFz89PvL+/50Li2WazwcvLS247D2W6Ta0sS6xWq/wrIa0JgQCkmCgQAgFK/v6Jvr295feCPRwO+Aup7dLkbViTTgAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;순서에 상관없음.&quot;
+        title=&quot;순서에 상관없음.&quot;
+        src=&quot;/static/c707725417e32466afeba4726cd92b46/ae694/http2_multiplexing_orderby.png&quot;
+        srcset=&quot;/static/c707725417e32466afeba4726cd92b46/5a46d/http2_multiplexing_orderby.png 300w,
+/static/c707725417e32466afeba4726cd92b46/0a47e/http2_multiplexing_orderby.png 600w,
+/static/c707725417e32466afeba4726cd92b46/ae694/http2_multiplexing_orderby.png 850w&quot;
+        sizes=&quot;(max-width: 850px) 100vw, 850px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;
+순서에 상관없음.&lt;/p&gt;
+&lt;p&gt;⇒ 단일 연결로 병렬 요청을 받을 수 있고, HTTP/1.1 에서 발생하는 문제인 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;HOL Blocking 문제를 해결&lt;/strong&gt;&lt;/span&gt;할 수 있다.
+(HTTP/1.1 의 Connection Keep-Alive, Pipelining 개선)&lt;/p&gt;
+&lt;p&gt;⇒ RTT 시간이 줄어들어 별도의 최적화 과정 또는 도메인 샤딩없이 웹 사이트 로드 속도가 빨라진다.&lt;/p&gt;
+&lt;h3 id=&quot;header-compression&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#header-compression&quot; aria-label=&quot;header compression permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Header Compression&lt;/h3&gt;
+&lt;p&gt;HTTP/2 는 중복 헤더 프레임을 압축해서 전송한다.&lt;/p&gt;
+&lt;p&gt;헤더 정보를 압축하기 위해 Headere Table 과 Huffman Encoding 기법을 사용하여 처리한다. 이를 HPACK 압축방식 이라고 부르며 별도의 명세서 (RFC 7531)로 관리한다.&lt;/p&gt;
+&lt;p&gt;클라이언트와 서버에서 모두 이전 요청에 사용 된 헤더 목록을 유지 관리한다.(Header Table) HPACK 은 서버로 전송되기 전에 각 헤더의 개별 값을 압축한 다음 이전에 전송된 헤더 값 목록에서 인코딩 된 정보를 조회하여 전체 헤더 정보를 재구성한다.(Huffman Encoding)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;허프만 인코딩&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;문자열을 문자 단위로 쪼개어 빈도수를 센다. 빈도가 높은 정보는 적은 비트 수를 사용하여 표현하고, 빈도가 낮은 정보는 비트 수를 많이 사용하여 표현한다. 이를 통해 전체 데이터 표현에 필요한 비트양을 줄인다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 732px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.33333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAACFklEQVQoz22S/VMSYRDH73/uH6hfyqzQIQOVGD250QbStNAxk6TQMSsMUBEOCeTleBOIl8MQ4dM9j/7QOO7Md3Zvd/a7393nlGqlynk2R7VcJZ/JcZZMUcgXrNw5idME2UyWfC6PUTSkz6QzMi9iaaNb3MaKaAx+DhI5PSZyrnOcTWEUDEkU2A5w+DOMnkiiJ5P0zB7D6yH9v32u+lcSg/5AepETNSUajWF/Mcn4nIOH624m/Bqh4Fe2PwVwOFzYbHacThczM25q1QvZXDJKlEsVuZXY0CiWqF/UGQ1HKEexI5Y8i0yoszx658L+XqNslNHjx4T8i6xp06zMT7Gy4KReq8m1Ou0OZtfE7Jj0uj0ZC4XClGgkysyracZeT/FAm2DM6yIWifHj2z4fltyoThtzU8+Yd9gsFTcKi4UilVt1JUtd60/rhlDcMKWnWF1eYVp1M7e1zGpoS97wNJ5gbc2POu9BVTU21jdl4/XgmmajSbfTpd1q02q25BCxriS8qDfQzzKEdvetw/+m3TaldNO85CSZZu8gzEE4SrnWkEcXzYJYkInVBcS38GKY8itdYty7w+TbHWZ3TvDuxWEwoNposeAP8mZzF83y3o+7tK2bCcKKeJBKTUIoFbjsXd48SjTX4OV2nKe+Lzz2hVCDR9av0OdeG92DO3XlUM/z3Gcp9AV4om3g2frO0FIoimLiXXBP7n/8A4Yby3qh+UqvAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http2_header_compression.png&quot;
+        title=&quot;http2_header_compression.png&quot;
+        src=&quot;/static/5ac0c4e9a57426bd9ffa0ad7e61cfef1/d0cc0/http2_header_compression.png&quot;
+        srcset=&quot;/static/5ac0c4e9a57426bd9ffa0ad7e61cfef1/5a46d/http2_header_compression.png 300w,
+/static/5ac0c4e9a57426bd9ffa0ad7e61cfef1/0a47e/http2_header_compression.png 600w,
+/static/5ac0c4e9a57426bd9ffa0ad7e61cfef1/d0cc0/http2_header_compression.png 732w&quot;
+        sizes=&quot;(max-width: 732px) 100vw, 732px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;원리를 좀만 더 자세히 설명하자면… 위 그림처럼 클라이언트가 두번의 요청을 보낸다고 가정하면 HTTP/1 의 경우 두개의 요청 Header 에 중복 값이 존재해도 그냥 중복 전송한다. 하지만 HTTP/2 에서는 Header 에 중복 값이 존재하는 경우 Static/Dynamic Header Table 개념을 사용하여 중복 Header 를 검출하고, 중복 된 Header 는 index 값만 전송한다. 중복되지 않은 Header 정보 값은 허프만 인코딩 처리하여 전송한다.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;⇒ 모바일과 같이 업로드 대역폭이 상대적으로 작은 경우에는 특히 HTTP 헤더 압축 방식이 유용하다. 오늘날의 HTTP 헤더는 평균 2KB 가량이고, 점점 더 커지는 추세이기 때문에 HTTP 헤더 압축의 가치는 앞으로 더 커질 것이라고 한다.&lt;/p&gt;
+&lt;h3 id=&quot;binary-protocol&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#binary-protocol&quot; aria-label=&quot;binary protocol permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Binary protocol&lt;/h3&gt;
+&lt;p&gt;텍스트 프로토콜에서 바이너리 프로토콜로 변화됬다. 기존 HTTP/1 에서 사용된 frame 의 복잡성을 편리하게 해주고, 텍스트와 공백들이 섞여 혼동이 발생하던 명령들보다 명령어를 단순하게 구현할 수 있다.&lt;/p&gt;
+&lt;p&gt;바이너리 프로토콜을 사용하면 다음과 같은 이점들이 있다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;데이터 파싱이 더 빠르고, 오류 발생 가능성이 낮음.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;네트워크 리소스의 효과적 사용&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;네트워크 지연 시간을 줄이고 처리량을 개선&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;텍스트 특성과 관련된 보안 문제를 해결할 수 있음&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;(EX. Response Splitting Attacks - 요청 파라미터에 개행문자(CR/LF) 포함 시 응답이 분리될 수 있음. 공격자는 악성코드 포함하여 XSS 및 캐시를 훼손.)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;HTTP/2 의 다른 기능 활성화&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;압축, 멀티플렉싱, 우선 순위 지정, 흐름 제어 및 TLS 의 효과적인 처리&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;server-push&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#server-push&quot; aria-label=&quot;server push permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Server Push&lt;/h3&gt;
+&lt;p&gt;서버는 요청되지 않았지만 향후 요청에서 예상되는 추가 정보를 클라이언트에게 전송할 수 있다.&lt;/p&gt;
+&lt;p&gt;예를 들어, 클라이언트(브라우저)가 HTML 문서를 요청하고 해당 HTML 에 여러 개의 리소스(CSS, image 등)가 포함되어 있다고 가정한다. HTTP/1.1 에서 클라이언트는 요청한 HTML 문서를 수신한 후 HTML 문서를 해석하면서 필요한 리소스를 재요청하는 반면, HTTP/2 에서는 Server Push 기법을 통해 클라이언트가 요청하지 않은 (HTML 문서에 포함 된 리소스들) 리소스를 Push 해주는 방법으로 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;클라이언트 요청을 최소화하여 성능 향상&lt;/strong&gt;&lt;/span&gt;을 이끌어낸다.&lt;/p&gt;
+&lt;p&gt;이를 PUSH&lt;em&gt;PROMISE 라고 부르고, PUSH&lt;/em&gt;PROMISE 를 통해서 서버가 전송한 리소스는 클라이언트가 요청하지 않는다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 602px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 48.33333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB0UlEQVQoz1VSWXLbMAzVMXuQ9D797Uk842QUK94qWYu1WkusxZJI7a8gk7QKZ6gHQuAj8ABlWRaIJfDLnucZRVkiLwrc73fkeY6C7JJ84jwMw7c7aw7ly/j0iA/maYLrXuE4NkzTJHTo7ML3PDpfwNp2FQ+sOZRp/jDYMKHqgWYCakqAkbsjfz+MqOsajDHwTx+bP2KqfkHFJ0kmqvqXoVji50m/4HQ+wwsC+GGI6HZDHMe4EYqdpCmOpxMOxyNcz0ecJEgeHNP/RKG8BDXCqgOnV19eNWy3WxiGAdu2pWYis5ZKbJoGnHPs93tsNhv80XUpS1ZzsK6Httuh6zooP37b+KVmsgT17QBVVWE7V3o9RVlVkrAhQkEqCEUF2+dnWLaDLEuRNCM044qfT09Sa0UzfaQ5XSTtzrqBw5uGy8WQ4tdE2BMJZy06ziTalond7hW6yNCxZIZ1yxCSTOJBpWsbLGOPgmq2ogx2EMMOE7jxO9KqxfuDIaMtsGh7+GkOi2IsP4ZHMRHJNU4zkbHvTRHOnnQcye7GBW03oqFd84FwkFjzXtp8nEEhMr5fd0Q0ZT2YYgbFelQlAt9HliaIohBJTF0mjAk9akROw72OXw/4X8hJ959Di8KqAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http_server_push.png&quot;
+        title=&quot;http_server_push.png&quot;
+        src=&quot;/static/2d4fb7235ec244ff3bc9fb10f8d03091/32056/http_server_push.png&quot;
+        srcset=&quot;/static/2d4fb7235ec244ff3bc9fb10f8d03091/5a46d/http_server_push.png 300w,
+/static/2d4fb7235ec244ff3bc9fb10f8d03091/0a47e/http_server_push.png 600w,
+/static/2d4fb7235ec244ff3bc9fb10f8d03091/32056/http_server_push.png 602w&quot;
+        sizes=&quot;(max-width: 602px) 100vw, 602px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Server Push 는 다음과 같은 부분에서 유용하다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;클라이언트는 푸시 된 리소스를 캐시에 저장&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;캐시 된 리소스를 여러 페이지에 걸쳐 재사용 할 수 있음.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;서버는 멀티플레싱으로 [요청한 정보 + 푸시 할 리소스] 전송 가능&lt;/li&gt;
+&lt;li&gt;서버는 푸시되는 리소스의 우선 순위를 지정할 수 있음.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;클라이언트의 선택적 리소스 관리&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;푸시 된 리소스를 거부하거나 서버 푸시를 비활성화할 수 있음.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;클라이언트가 멀티플렉싱되는 푸시 스트림 수 제한 가능&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;stream-prioritization&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#stream-prioritization&quot; aria-label=&quot;stream prioritization permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Stream Prioritization&lt;/h3&gt;
+&lt;p&gt;클라이언트가 선호하는 응답 수신 방식을 지정해서 응답받을 수 있다.&lt;/p&gt;
+&lt;p&gt;문서 내 CSS 파일 1개와 이미지파일 2개 가 존재하고, 이를 클라이언트가 요청한다고 가정하겠다. 이미지 파일보다 CSS 파일의 수신이 늦어진다면 브라우저 렌더링 문제가 생길 수있는데, HTTP/2 는 이런 상황을 고려해서 &lt;span style=&apos;background-color: #fff5b1&apos;&gt;&lt;strong&gt;리소스간 의존관계에 따른 우선순위를 설정&lt;/strong&gt;&lt;/span&gt;하고 리소스 로드 문제를 해결할 수 있다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 852px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 41.333333333333336%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABGklEQVQoz32R626EIBCFff8n66+mTVuTNnXdmqjdFRUWLyDgKeiCmrQ9ySRkGL45M0Rd14ExBiHEErMx8JqmaQkvY++WmnkOOa01pJTL2eWjUKwNlNJQRh+KXXi5B76Bh7omSqkNSAgBuRI81I/IyAnN8xv0HVqWJfI8D0DOOZIkOQAppTil6QZ0dqWQqKYaneDQ9AYzr2MPdh19xwPQOWFtewD2/QhmofN9kjDyXr74XDOcCQ15OgjEBdntuEd1fUFa1ciatXHkHv8WTu04gY7bpwyjQs56u5J1Am0klKhAqAX34m+He5deoxZ4al5RFxnYVxbyRFLE9B30lIJX1f8j790K6ybuPnEjF4jvyw5Y42NIMRYlpN3lD4yPcPSeiwZeAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;http2_stream_prioritization.png&quot;
+        title=&quot;http2_stream_prioritization.png&quot;
+        src=&quot;/static/06783d92ae35428c68b55139e93b311c/47ff6/http2_stream_prioritization.png&quot;
+        srcset=&quot;/static/06783d92ae35428c68b55139e93b311c/5a46d/http2_stream_prioritization.png 300w,
+/static/06783d92ae35428c68b55139e93b311c/0a47e/http2_stream_prioritization.png 600w,
+/static/06783d92ae35428c68b55139e93b311c/47ff6/http2_stream_prioritization.png 852w&quot;
+        sizes=&quot;(max-width: 852px) 100vw, 852px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt; &lt;/p&gt;
+&lt;p&gt;&amp;#x3C;참고 자료&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://gngsn.tistory.com/99#recentComments&quot;&gt;https://gngsn.tistory.com/99#recentComments&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://east-star.tistory.com/18&quot;&gt;https://east-star.tistory.com/18&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://ijbgo.tistory.com/26&quot;&gt;https://ijbgo.tistory.com/26&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content:encoded></item><item><title><![CDATA[6. Velero 구축 - 백업 및 복구]]></title><description><![CDATA[Velero 란? Kubernetes 클러스터 리소스 및 영구 볼륨을 백업 및 복원할 수 있는 도구.
+AWS, GCP, Azure 와 연동하여 구축가능.
+Ceph과 호환하여 구축 1) 정보 버전 정보: v1.5 릴리즈: https://github…]]></description><link>https://duarbdhks.github.io/kubernetes/6_velero/</link><guid isPermaLink="false">https://duarbdhks.github.io/kubernetes/6_velero/</guid><pubDate>Thu, 25 Mar 2021 01:02:17 GMT</pubDate><content:encoded>&lt;h1 id=&quot;velero-란&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#velero-%EB%9E%80&quot; aria-label=&quot;velero 란 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Velero 란?&lt;/h1&gt;
+&lt;p&gt;Kubernetes 클러스터 리소스 및 영구 볼륨을 백업 및 복원할 수 있는 도구.
+AWS, GCP, Azure 와 연동하여 구축가능.
+Ceph과 호환하여 구축&lt;/p&gt;
+&lt;h3 id=&quot;1-정보&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EC%A0%95%EB%B3%B4&quot; aria-label=&quot;1 정보 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1) 정보&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;버전 정보: v1.5&lt;/li&gt;
+&lt;li&gt;릴리즈: &lt;a href=&quot;https://github.com/vmware-tanzu/velero/releases/tag/v1.5.1&quot;&gt;https://github.com/vmware-tanzu/velero/releases/tag/v1.5.1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Git: &lt;a href=&quot;https://github.com/vmware-tanzu/velero&quot;&gt;https://github.com/vmware-tanzu/velero&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Download: &lt;a href=&quot;https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz&quot;&gt;https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Document: &lt;a href=&quot;https://velero.io/docs/v1.5/&quot;&gt;https://velero.io/docs/v1.5/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;2-수행&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-%EC%88%98%ED%96%89&quot; aria-label=&quot;2 수행 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2) 수행&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;클러스터 백업 및 복원&lt;/li&gt;
+&lt;li&gt;클러스터 리소스를 다른 클러스터로 마이그레이션&lt;/li&gt;
+&lt;li&gt;클러스터 복제( ex) 프로덕션 클러스터를 개발용 클러스터에 복제 )&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;3-구성&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-%EA%B5%AC%EC%84%B1&quot; aria-label=&quot;3 구성 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3) 구성&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;클러스터에서 실행되는 서버&lt;/li&gt;
+&lt;li&gt;로컬에서 실행되는 커맨드라인 형태의 Client&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;4-작동원리&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-%EC%9E%91%EB%8F%99%EC%9B%90%EB%A6%AC&quot; aria-label=&quot;4 작동원리 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4) 작동원리&lt;/h3&gt;
+&lt;p&gt;on-demand(요청이 있을 시 언제든) 백업, 예약 백업, 복언 등 각 작업은 사용자 지정 리소스(CRD)로 정의됨.&lt;/p&gt;
+&lt;h3 id=&quot;5-목적&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-%EB%AA%A9%EC%A0%81&quot; aria-label=&quot;5 목적 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5) 목적&lt;/h3&gt;
+&lt;p&gt;연구자 및 박사들의 연구 결과 및 환경설정, 데이터 등을 스냅샷 백업함. 백업된 스냅샷을 추후 Deploy로 복원하여 연구를 지속할수 있도록 함.&lt;/p&gt;
+&lt;h1 id=&quot;설치&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EC%84%A4%EC%B9%98&quot; aria-label=&quot;설치 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;설치&lt;/h1&gt;
+&lt;h3 id=&quot;1-전제-조건&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EC%A0%84%EC%A0%9C-%EC%A1%B0%EA%B1%B4&quot; aria-label=&quot;1 전제 조건 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1) 전제 조건&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Kubernetes v1.10 이상 설치&lt;/li&gt;
+&lt;li&gt;kubectl 설치&lt;/li&gt;
+&lt;li&gt;클러스터 노드는 CPU4개 이상&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;2-다운로드-및-명령어-설정&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C-%EB%B0%8F-%EB%AA%85%EB%A0%B9%EC%96%B4-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;2 다운로드 및 명령어 설정 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2) 다운로드 및 명령어 설정&lt;/h3&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token function&quot;&gt;wget&lt;/span&gt; https://github.com/vmware-tanzu/velero/releases/download/v1.5.1/velero-v1.5.1-linux-amd64.tar.gz
+&lt;span class=&quot;token function&quot;&gt;tar&lt;/span&gt; zxf velero-v1.5.1-linux-amd64.tar.gz
+&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.5.1-linux-amd64
+&lt;span class=&quot;token function&quot;&gt;chown&lt;/span&gt; -R root:root ./*
+&lt;span class=&quot;token function&quot;&gt;cp&lt;/span&gt; velero /usr/local/bin
+
+&lt;span class=&quot;token comment&quot;&gt;## 자동완성 &lt;/span&gt;
+&lt;span class=&quot;token builtin class-name&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;source &amp;lt;(velero completion bash)&quot;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&gt;&gt;&lt;/span&gt; ~/.bashrc &lt;span class=&quot;token comment&quot;&gt;#서버 재접속&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&quot;3-velero-서버-설정&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-velero-%EC%84%9C%EB%B2%84-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;3 velero 서버 설정 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3) Velero 서버 설정&lt;/h3&gt;
+&lt;p&gt;velero 사용을 위해서는 helm2 의 tiller와 비슷한 형태로, velero 서버 구축이 필요함.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;velero version&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 869px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 8.333333333333332%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAACCAYAAABYBvyLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAaklEQVQI143OSQ5AQBQEUHcgWIt5WphpLWIKIsT9D1P8dgGLl1RqUyV5BUdY9/DLDnbavBh0O4JqBtCsUKAsGx6UHyS+3SjHHe16oRg21PMhUFdNB5rlRMwGuDl/tWLQSr5hOkA9nXIyJjwIij5DecAfyQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;velero&quot;
+        title=&quot;velero&quot;
+        src=&quot;/static/5c743c1fe41e4b1454e77fac80799d05/2b2c6/velero.png&quot;
+        srcset=&quot;/static/5c743c1fe41e4b1454e77fac80799d05/5a46d/velero.png 300w,
+/static/5c743c1fe41e4b1454e77fac80799d05/0a47e/velero.png 600w,
+/static/5c743c1fe41e4b1454e77fac80799d05/2b2c6/velero.png 869w&quot;
+        sizes=&quot;(max-width: 869px) 100vw, 869px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Velero 관련 자격 증명 파일 생성&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.5.1-linux-amd64/examples/minio
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; credentials-velero
+--------------------
+&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;default&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;
+aws_access_key_id &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; minio
+aws_secret_access_key &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; minio123
+--------------------&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Minio 및 Velero 설치&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## Minio 설치 ##&lt;/span&gt;
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; 00-minio-deployment.yaml
+--------------------
+&lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;. 중략 &lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;.
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: velero
+  name: minio
+  labels:
+    component: minio
+spec:
+  type: LoadBalancer
+  ports:
+    - port: &lt;span class=&quot;token number&quot;&gt;9000&lt;/span&gt;
+      targetPort: &lt;span class=&quot;token number&quot;&gt;9000&lt;/span&gt;
+      protocol: TCP
+      nodePort: &lt;span class=&quot;token number&quot;&gt;30010&lt;/span&gt;
+  selector:
+    component: minio
+&lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;. 중략 &lt;span class=&quot;token punctuation&quot;&gt;..&lt;/span&gt;.
+--------------------
+kubectl apply -f 00-minio-deployment.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## Velero 설치 ##&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./credentials-velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000 &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0
+
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000,publicUrl&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token number&quot;&gt;34.84&lt;/span&gt;.208.171:30010 &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0,velero/velero-plugin-for-microsoft-azure:v1.0.0,velero/velero-plugin-for-gcp:v1.0.0
+
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./cloud-credentials &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;minio,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://minio.velero.svc:9000,publicUrl&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;minio가 설치된 서버:포트번호&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+    &lt;span class=&quot;token comment&quot;&gt;# 1.2.0 버전 업되면서 install 옵션이 추가&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0,velero/velero-plugin-for-microsoft-azure:v1.0.0,velero/velero-plugin-for-gcp:v1.0.0
+
+&lt;span class=&quot;token comment&quot;&gt;## AWS ##&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; 
+--provider aws 
+--plugins velero/velero-plugin-for-aws:v1.0.0 
+--bucket backups --provider aws --secret-file ./aws-iam-creds --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;us-east-2 --snapshot-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;us-east-2 --use-restic
+
+&lt;span class=&quot;token comment&quot;&gt;###### Ceph 오브젝트 연결 ######&lt;/span&gt;
+
+&lt;span class=&quot;token comment&quot;&gt;# velero 오브젝트 스토리지 AWS ACCESS KEY&lt;/span&gt;
+kubectl get secrets -n velero velero -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.data.AWS_ACCESS_KEY_ID}&apos;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; base64 --decode
+
+&lt;span class=&quot;token comment&quot;&gt;# velero 오브젝트 스토리지 AWS_SECRET_ACCESS_KEY&lt;/span&gt;
+kubectl get secrets -n velero velero -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.data.AWS_SECRET_ACCESS_KEY}&apos;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt; base64 --decode
+
+&lt;span class=&quot;token function&quot;&gt;vi&lt;/span&gt; aws-iam-creds
+----------------------
+&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;default&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;
+aws_access_key_id &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; 33N1ICUFF9N4J7CKOHNS
+aws_secret_access_key &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; wWaOMrrMHxprj2hcl8CqBrXNkSAfxSVI6wZiwsy4
+------------------------
+&lt;span class=&quot;token assign-left variable&quot;&gt;rgwPort&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;kubectl get svc -n rook-ceph rook-ceph-rgw-kreonet-store-external -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.spec.ports[0].nodePort}&apos;&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./aws-iam-creds &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;ap-northeast-2,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://203.253.235.74:&lt;span class=&quot;token variable&quot;&gt;${rgwPort}&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.0.0
+&lt;span class=&quot;token comment&quot;&gt;##############################&lt;/span&gt;
+
+&lt;span class=&quot;token assign-left variable&quot;&gt;rgwPort&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;kubectl get svc -n rook-ceph rook-ceph-rgw-kimbig-store-external -o &lt;span class=&quot;token assign-left variable&quot;&gt;jsonpath&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&apos;{.spec.ports[0].nodePort}&apos;&lt;/span&gt;&lt;span class=&quot;token variable&quot;&gt;`&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+velero &lt;span class=&quot;token function&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --provider aws &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --bucket velero &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --secret-file ./aws-iam-creds &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --use-volume-snapshots&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;false &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --backup-location-config &lt;span class=&quot;token assign-left variable&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;ap-northeast-2,s3ForcePathStyle&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;true&quot;&lt;/span&gt;,s3Url&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;http://34.64.71.10:&lt;span class=&quot;token variable&quot;&gt;${rgwPort}&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;\&lt;/span&gt;
+    --plugins velero/velero-plugin-for-aws:v1.1.0
+
+&lt;span class=&quot;token comment&quot;&gt;## Velero 서버 연동 확인&lt;/span&gt;
+velero version
+
+&lt;span class=&quot;token comment&quot;&gt;## Velero 서버 삭제 ##&lt;/span&gt;
+kubectl delete deployment velero -n velero
+kubectl delete crds -l &lt;span class=&quot;token assign-left variable&quot;&gt;component&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;velero
+kubectl delete namespace/velero clusterrolebinding/velero  &lt;span class=&quot;token comment&quot;&gt;# 재설치의 경우 굳이 삭제하지 않아도 된다.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;예제 nginx 애플리케이션 배포&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;## 1. nginx 샘플 Deploy 생성&lt;/span&gt;
+&lt;span class=&quot;token builtin class-name&quot;&gt;cd&lt;/span&gt; velero-v1.4.2-linux-amd64/examples/nginx-app
+kubectl apply -f base.yaml
+
+&lt;span class=&quot;token comment&quot;&gt;## 2. 백업&lt;/span&gt;
+velero backup create nginx-backup --selector &lt;span class=&quot;token assign-left variable&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;nginx
+
+&lt;span class=&quot;token comment&quot;&gt;## 3. 복원&lt;/span&gt;
+velero restore create --from-backup nginx-backup&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&quot;간단-사용법&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95&quot; aria-label=&quot;간단 사용법 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;간단 사용법&lt;/h1&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;bash&quot;&gt;&lt;pre class=&quot;language-bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;#### 백업 ####&lt;/span&gt;
+&lt;span class=&quot;token comment&quot;&gt;# 네임스페이스 지정&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --include-namespaces tpas,heimdall,kafka
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 특정 네임스페이스 제외&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --exclude-namespaces default,kube-system
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 네임스페이스의 특정 리소스 제외&lt;/span&gt;
+$ velero backup create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --include-namespaces tpas,heimdall,kafka --exclude-resources ingress,service
+ 
+&lt;span class=&quot;token comment&quot;&gt;# 백업 데이터 확인 / 어떤 리소스가 백업되어 있는지 확인 가능&lt;/span&gt;
+$ velero backup describe &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;BACKUP_NAME&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --details
+
+&lt;span class=&quot;token comment&quot;&gt;#### 스케쥴링 백업 ####&lt;/span&gt;
+velero schedule create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;schedule-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --schedule&lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;0 1 * * * or @daily&quot;&lt;/span&gt; --include-resources deployments,service
+
+&lt;span class=&quot;token comment&quot;&gt;#### 백업 삭제 ####&lt;/span&gt;
+velero backup delete &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;backup-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --confirm &lt;span class=&quot;token comment&quot;&gt;# 바로 삭제&lt;/span&gt;
+velero schedule delete &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;schedule-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+
+&lt;span class=&quot;token comment&quot;&gt;#### 복원 ####&lt;/span&gt;
+velero restore create &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;restore-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; --from-backup &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;backup-name&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content:encoded></item><item><title><![CDATA[1. Kubernetes 설치 및 환경 구성]]></title><description><![CDATA[Test workpsace workpsace2 workpsace3]]></description><link>https://duarbdhks.github.io/kubernetes/1_kubernetes_setting/</link><guid isPermaLink="false">https://duarbdhks.github.io/kubernetes/1_kubernetes_setting/</guid><pubDate>Sat, 20 Mar 2021 10:02:17 GMT</pubDate><content:encoded>&lt;h1 id=&quot;test&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#test&quot; aria-label=&quot;test permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Test&lt;/h1&gt;
+&lt;h2 id=&quot;workpsace&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workpsace&quot; aria-label=&quot;workpsace permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workpsace&lt;/h2&gt;
+&lt;h2 id=&quot;workpsace2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workpsace2&quot; aria-label=&quot;workpsace2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workpsace2&lt;/h2&gt;
+&lt;h2 id=&quot;workpsace3&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#workpsace3&quot; aria-label=&quot;workpsace3 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;workpsace3&lt;/h2&gt;</content:encoded></item><item><title><![CDATA[GitHub 블로그]]></title><description><![CDATA[Why GitHub…]]></description><link>https://duarbdhks.github.io/github/github-blog-history/</link><guid isPermaLink="false">https://duarbdhks.github.io/github/github-blog-history/</guid><pubDate>Mon, 08 Feb 2021 23:03:25 GMT</pubDate><content:encoded>&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1200px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 23.333333333333332%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAoklEQVQY022QWxLCMAhFs6TyCInVcR8dP9z/KhAIaHX8YKDk3gO0EaIykhKs3C3Ya+II79OGkcW+PVwnyKEtHwNFblU4uAPrxG7ZDF10WPjbLsPga9gK1pt0vbAPdH9CA5j0AFo9TCyYIps+Dfp8HHrfr4obmG4ZJ9WGf4BxVjZq4/dvsM0cKnk+5zAHhc978Dm9VVGPhHgyphDwB3Z+/97wBVGToA6FDANMAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;main_thumbnail&quot;
+        title=&quot;main_thumbnail&quot;
+        src=&quot;/static/a6fc123951365a8074e8a1a2dfb27f43/c1b63/github-blog-history.png&quot;
+        srcset=&quot;/static/a6fc123951365a8074e8a1a2dfb27f43/5a46d/github-blog-history.png 300w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/0a47e/github-blog-history.png 600w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/c1b63/github-blog-history.png 1200w,
+/static/a6fc123951365a8074e8a1a2dfb27f43/61016/github-blog-history.png 1770w&quot;
+        sizes=&quot;(max-width: 1200px) 100vw, 1200px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;why-github&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#why-github&quot; aria-label=&quot;why github permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Why GitHub?&lt;/h2&gt;
+&lt;p&gt;연차가 쌓이고 경험이 늘어날수록 알게 되는 것들이 많아졌다.  이를 나만의 공간에 정리하고 싶었고, 기술블로그를 시작하게 되었다.&lt;/p&gt;
+&lt;p&gt;블로그를 막상 시작하려하니 어떤 블로그를 이용해야 할지가고민이 되었다.
+&lt;strong&gt;네이버블로그&lt;/strong&gt;, &lt;strong&gt;티스토리&lt;/strong&gt; 등 편한 선택지는 많이 있었다. 하지만 최종적인 선택은 &lt;strong&gt;깃헙 블로그&lt;/strong&gt;였다.
+이번 기회에 깃헙을 더 깊게 사용해보고자 했었다. 시간은 들었지만 올바른 선택이었던 것 같다.&lt;/p&gt;
+&lt;p&gt;아래 내용은 GitHub 블로그 생성 히스토리이다.&lt;/p&gt;
+&lt;h2 id=&quot;1-레포지토리-생성&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-%EB%A0%88%ED%8F%AC%EC%A7%80%ED%86%A0%EB%A6%AC-%EC%83%9D%EC%84%B1&quot; aria-label=&quot;1 레포지토리 생성 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. 레포지토리 생성&lt;/h2&gt;</content:encoded></item><item><title><![CDATA[Quick Start]]></title><description><![CDATA[Getting Started 😎 1. Create a Gatsby site. If you are not using , following Gatsby Getting Started 2. Start developing. 3. Add your content…]]></description><link>https://duarbdhks.github.io/development/quick_start/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/quick_start/</guid><pubDate>Sun, 05 Jul 2020 17:21:13 GMT</pubDate><content:encoded>&lt;h1 id=&quot;getting-started-&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#getting-started-&quot; aria-label=&quot;getting started  permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Getting Started 😎&lt;/h1&gt;
+&lt;h2 id=&quot;1-create-a-gatsby-site&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-create-a-gatsby-site&quot; aria-label=&quot;1 create a gatsby site permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. Create a Gatsby site.&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;# create a new Gatsby site using the blog starter
+$ npx gatsby new my-blog-starter https://github.com/JaeYeopHan/gatsby-starter-bee&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you are not using &lt;code class=&quot;language-text&quot;&gt;npx&lt;/code&gt;, following &lt;a href=&quot;https://www.gatsbyjs.org/docs/quick-start&quot;&gt;Gatsby Getting Started&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ npm install -g gatsby-cli
+$ gatsby new my-blog-starter https://github.com/JaeYeopHan/gatsby-starter-bee&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;2-start-developing&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-start-developing&quot; aria-label=&quot;2 start developing permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2. Start developing.&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ cd my-blog-starter/
+$ npm start
+# open localhost:8000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;3-add-your-content&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-add-your-content&quot; aria-label=&quot;3 add your content permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3. Add your content&lt;/h2&gt;
+&lt;p&gt;You can write…&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;contents to blog in &lt;code class=&quot;language-text&quot;&gt;content/blog&lt;/code&gt; directory.&lt;/li&gt;
+&lt;li&gt;resume &lt;code class=&quot;language-text&quot;&gt;content/__about&lt;/code&gt; directory.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;With markdown syntax and some meta data&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&quot;support-script-for-creating-new-post&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#support-script-for-creating-new-post&quot; aria-label=&quot;support script for creating new post permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Support script for creating new post&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;/34628ec574f22bee7a31c7f208a84e79/cli-tool-example.gif&quot;&gt;&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;sh&quot;&gt;&lt;pre class=&quot;language-sh&quot;&gt;&lt;code class=&quot;language-sh&quot;&gt;$ npm run post&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;4-fix-meta-data&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-fix-meta-data&quot; aria-label=&quot;4 fix meta data permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4. Fix meta data&lt;/h2&gt;
+&lt;p&gt;You can fix meta data of blog in &lt;code class=&quot;language-text&quot;&gt;/gatsby-meta-config.js&lt;/code&gt; file.&lt;/p&gt;
+&lt;h2 id=&quot;5-publish-with-netlify&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-publish-with-netlify&quot; aria-label=&quot;5 publish with netlify permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5. Publish with &lt;a href=&quot;https://netlify.com&quot;&gt;netlify&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://app.netlify.com/start/deploy?repository=https://github.com/JaeYeopHab/gatsby-starter-bee&quot;&gt;&lt;img src=&quot;https://www.netlify.com/img/deploy/button.svg&quot; alt=&quot;Deploy to Netlify&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;💡 if you want to deploy github pages, add following script to package.json&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;json&quot;&gt;&lt;pre class=&quot;language-json&quot;&gt;&lt;code class=&quot;language-json&quot;&gt;&lt;span class=&quot;token property&quot;&gt;&quot;scripts&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token property&quot;&gt;&quot;deploy&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;gatsby build &amp;amp;&amp;amp; gh-pages -d public -b master -r &apos;git@github.com:${your github id}/${github page name}.github.io.git&apos;&quot;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h1 id=&quot;memo-write-a-post&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#memo-write-a-post&quot; aria-label=&quot;memo write a post permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;:memo: Write a post!&lt;/h1&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;content
+├── __about
+└── blog&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;You can register your resume on the web. (in &lt;code class=&quot;language-text&quot;&gt;__about&lt;/code&gt; directory)&lt;/li&gt;
+&lt;li&gt;You can register your post. (in &lt;code class=&quot;language-text&quot;&gt;blog&lt;/code&gt; directory)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;-customize&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#-customize&quot; aria-label=&quot; customize permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;🧐 Customize!&lt;/h1&gt;
+&lt;h2 id=&quot;gatsby-config&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#gatsby-config&quot; aria-label=&quot;gatsby config permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Gatsby config&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;/root
+├── gatsby-browser.js // font, polyfill, onClientRender ...
+├── gatsby-config.js // Gatsby config
+├── gatsby-meta-config.js // Template meta config
+└── gatsby-node.js // Gatsby Node config&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;structure&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#structure&quot; aria-label=&quot;structure permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Structure&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;src
+├── components // Just component with styling
+├── layout // home, post layout
+├── pages // routing except post: /(home), /about
+├── styles
+│   ├── code.scss
+│   ├── dark-theme.scss
+│   ├── light-theme.scss
+│   └── variables.scss
+└── templates
+    ├── blog-post.js
+    └── home.js&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;style&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#style&quot; aria-label=&quot;style permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Style&lt;/h2&gt;
+&lt;p&gt;You can customize color in &lt;code class=&quot;language-text&quot;&gt;src/styles&lt;/code&gt; directory.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;src/styles
+├── code.scss
+├── dark-theme.scss
+├── light-theme.scss
+└── variables.scss&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Welcome to gatsby-starter-bee!
+Happy blogging! 👻&lt;/p&gt;
+&lt;/blockquote&gt;</content:encoded></item><item><title><![CDATA[Welcome Bee starter]]></title><description><![CDATA[Welcome, Gatsby! This starter is full-package for your new blog! 1. Support Four frontmatter title date category draft 2. Code highlighting…]]></description><link>https://duarbdhks.github.io/development/hello/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/hello/</guid><pubDate>Sat, 04 Jul 2020 12:21:13 GMT</pubDate><content:encoded>&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 466px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 95.66666666666666%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAATCAYAAACQjC21AAAACXBIWXMAABYlAAAWJQFJUiTwAAADJklEQVQ4y5WU909TURTH+y/4iyPGvffeJibGHzQaFUQUBJQlCCQGiWgEhUQhCrJXgRIUUAsKkRVGBKEGhCAgSFFkCdSGWVkyur6+e+SVV6wx3uSm972++znje84RYWbp9Xra/Fmr1cHU0uv00HH/Cb/lz2yJ5r7UCUA67rKyQ4WvdUq0NfRiqHfMCMz23PsiU7DpSQ3yk+pw++Qz2K6LguXSUFxYFgaHrbF45PAa9WWdRkZ5qAEohCnahnDn9HOYLQiGz5kXyBHXoKaoDRU5X5Byvxwuu+NhsTgESb4l0Gp0Bm95qEhopa97GNePJMNufRTe57VAPaVFS60SZS/lBGThT4xNI9nvLRmMu1lsFDIBhSEHOWbDelUEQXq7hnHXXAqbtZG4uDwMVivCYb85BhKfEvpWGlwB84XBePO8kZ61M0KJ+FAb33VRKJmRVRgZ/AnXvQmUP9c9CXRm++queIIHO2Uj3D2fjN06kYbJ8enZkHmghMuJ/ZZYTE2oEetVRBfdD0jgvFNMIP7XbX8ifcf2tX2JuLIpBh9nRGIsQw4DbLModw2yb+j6PEAeOXCXXDgPhVDmlc2aSPKewS5x59yED7/D1swA1dNa+JpJyTqzKq/qwfd2FcFYqTC40/Y4uB+UIF9Si/JXcpRIPyEjtJLA6SGVxkAWu59FOvwtM1BX2kGWmzkoU5WHMg89DiWhlAMxxZnB/p4RWK+OQF5i7SyQzyErBVsu5LEfkxS23YZoggo9Zb/s/al5D1Fd2ApZZjMJ2VTZPZtDHthU2UMdkRYoo+fqglZc3hht8JSpzYRg5cPqj0XlfTwVXseeUmcZVBbWYYhrLqxWhqOmuI2e60o6SCjmgaJ1CB6Hk6hb2Ep5UE51WMbl06gOhZ0yqBzFDc4iS3RBcj29a65WUO5YnbKl6huH2LsYZ+cHUamZ7BRhL/dxHeJ/PgPmix7D8+gTUjLQLgvOO8SI9iyE47Y4WC4JRWqAbHaECXvZ1LTRqLXUUvfOpZPirB6ZykyUMLc8Kqu/Tps/5qFObzRQBxQjaG/sRae8H6OqCSOQqSEr+t+JrfvHxP4Fu13ld6Om6H4AAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;hello&quot;
+        title=&quot;hello&quot;
+        src=&quot;/static/31955aadfaea1bcef76bb662347d1af4/fc1a1/hello.png&quot;
+        srcset=&quot;/static/31955aadfaea1bcef76bb662347d1af4/5a46d/hello.png 300w,
+/static/31955aadfaea1bcef76bb662347d1af4/fc1a1/hello.png 466w&quot;
+        sizes=&quot;(max-width: 466px) 100vw, 466px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Welcome, Gatsby! This starter is full-package for your new blog!&lt;/p&gt;
+&lt;h2 id=&quot;1-support-four-frontmatter&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#1-support-four-frontmatter&quot; aria-label=&quot;1 support four frontmatter permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;1. Support Four frontmatter&lt;/h2&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;text&quot;&gt;&lt;pre class=&quot;language-text&quot;&gt;&lt;code class=&quot;language-text&quot;&gt;---
+title: &apos;Welcome Bee starter&apos;
+date: 2019-2-6 16:21:13
+category: &apos;development&apos;
+draft: false
+---&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;title&lt;/li&gt;
+&lt;li&gt;date&lt;/li&gt;
+&lt;li&gt;category&lt;/li&gt;
+&lt;li&gt;draft&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;2-code-highlighting&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#2-code-highlighting&quot; aria-label=&quot;2 code highlighting permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;2. Code highlighting&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;With &lt;a href=&quot;https://github.com/tonsky/FiraCode&quot;&gt;Fira Code&lt;/a&gt; font&lt;/li&gt;
+&lt;li&gt;Support highlighting with &lt;a href=&quot;https://github.com/PrismJS/prism&quot;&gt;prism&lt;/a&gt;
+2-1. Use inline highlighting&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&quot;gatsby-highlight has-highlighted-lines&quot; data-language=&quot;js&quot;&gt;&lt;pre class=&quot;language-js&quot;&gt;&lt;code class=&quot;language-js&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;import&lt;/span&gt; React &lt;span class=&quot;token keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;react&apos;&lt;/span&gt;
+
+&lt;span class=&quot;gatsby-highlight-code-line&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;token constant&quot;&gt;TEMPLATE&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;gatsby-starter-bee&apos;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;React&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;Component&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token function-variable function&quot;&gt;handleClick&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token parameter&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&gt;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;val &lt;span class=&quot;token operator&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;bar&apos;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;val &lt;span class=&quot;token operator&quot;&gt;!==&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&apos;zoo&apos;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;2&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+    console&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;clicked&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;3&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;token function&quot;&gt;render&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;div&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;Welcome&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; Gatsby&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; $&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;TEMPLATE&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt;div&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;em&gt;code&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 1046px; &quot;
+    &gt;
+      &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 105%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAYAAABG1c6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC5klEQVQ4y51U2VITQRTNp6iQTCazrz1bFjIkiAJVvlilz2AV/oE+yINf4IOCVcoia0AoREBZ1O/iZY63e0hYxYKHU909mZw+5557p7D34/Dk4Oj3yfGvPyeHHMd3A+fY+3l0UiBCzC+u4t37T5j+MIuZj7fH9MxnzM0vYXf/AIWtnd3s+diz7GnsZG6bZYrKMk32M61yEap8PbQKy8pFOxuoP8o2NrezwkpnA8ODY7AlHarlQSrakPotlPptse+ucsn5J4oPTEQsxcLiCgpLKx20OaEWIHYHEAdtWEYMZkXiGTMZHM1HWfzZ7aEi5VDKnhAQBSlm5xe7hKPwDQbPjBD6KXynIfaW6iO0Arg6g17xetBkVyjrkpb6LISseUY41BqDo3rwrBhJNCRUmloMq+IgtgMEpDKicgSmR2cGRpeXizcQcoWeHiDyUnh2E6GdoOpXEXt1JF5C1qtwjGHCQ6hyIuxzIvk6wmUiHGw+hqnEGIieIPZHiGwIkR2jXWuj7icwlJBsRmQ3glr2icS5UMerhOko+u7pMKlmg3EdDZaIIFzNo4t8UXhF4kl30+bqnF4dr1huEWH/fQO2HqGVNMhmFQEpdI1Q1NYlcmYGUGSWWz0XyLWEXCHvJUMJqH4xJRySPVLWbY3TtUuUt45zs2WusOrX0Axr8K0aLC0V7ZI4gWidiuRdIPkvIVcYOrFI1aHE8+Lzxs1x3uJ58N94Y19KeYT6yiLLeX9JAnwEc5RPz3zlLcOfdUeyTPaFmB7hagcpESqU4GizhUZAU2JENHohIlIc2PkI8pB8qq2pMtGjNQKjQeBh2YpLs3wp5WJfrtBSmRg5h+rnUcocnISvPHX+Dl85uaOH4j1Ddi7OcisdEzZ4TbglgeIZ5NLVvdQ7X2M570O9l95twKem1GcKhXMLRLi+sYWpqbeYePES4+OTd8LExCRevX6DlbUNFL5930dnfZM+jsvihrtg/ssS1jpfsb2zh7//OydtLwK/6QAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;code example&quot;
+        title=&quot;code example&quot;
+        src=&quot;/static/14a95f9ea1a2560a874efa82ad7db24f/1c1a4/code_example.png&quot;
+        srcset=&quot;/static/14a95f9ea1a2560a874efa82ad7db24f/5a46d/code_example.png 300w,
+/static/14a95f9ea1a2560a874efa82ad7db24f/0a47e/code_example.png 600w,
+/static/14a95f9ea1a2560a874efa82ad7db24f/1c1a4/code_example.png 1046w&quot;
+        sizes=&quot;(max-width: 1046px) 100vw, 1046px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+      /&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;3-support-markdown-h2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#3-support-markdown-h2&quot; aria-label=&quot;3 support markdown h2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;3. Support Markdown (h2)&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;With &lt;a href=&quot;https://fonts.google.com/specimen/Noto+Sans&quot;&gt;Noto Sans&lt;/a&gt; font&lt;/li&gt;
+&lt;li&gt;Support header anchoring&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;h3&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h3&quot; aria-label=&quot;h3 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h3&lt;/h3&gt;
+&lt;h4 id=&quot;h4&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h4&quot; aria-label=&quot;h4 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h4&lt;/h4&gt;
+&lt;h5 id=&quot;h5&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#h5&quot; aria-label=&quot;h5 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;h5&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;quote!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;bold&lt;/strong&gt; &lt;em&gt;italic&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&quot;4-support-emoji-&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#4-support-emoji-&quot; aria-label=&quot;4 support emoji  permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;4. Support emoji 🚀&lt;/h2&gt;
+&lt;p&gt;Based on &lt;a href=&quot;https://github.com/emojione/emojione&quot;&gt;emojione&lt;/a&gt; 🙏&lt;/p&gt;
+&lt;h2 id=&quot;5-support-lightdark-mode&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#5-support-lightdark-mode&quot; aria-label=&quot;5 support lightdark mode permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;5. Support light/dark mode&lt;/h2&gt;
+&lt;h2 id=&quot;6-support-social-sharing-feature&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#6-support-social-sharing-feature&quot; aria-label=&quot;6 support social sharing feature permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;6. Support social sharing feature&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Twitter&lt;/li&gt;
+&lt;li&gt;Facebook&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;bonus-code-classlanguage-textbuy-me-a-coffeecode-button&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#bonus-code-classlanguage-textbuy-me-a-coffeecode-button&quot; aria-label=&quot;bonus code classlanguage textbuy me a coffeecode button permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Bonus, &lt;code class=&quot;language-text&quot;&gt;Buy me a coffee&lt;/code&gt; button&lt;/h3&gt;
+&lt;p&gt;Set, &lt;code class=&quot;language-text&quot;&gt;buyMeACoffeeId&lt;/code&gt; of &lt;code class=&quot;language-text&quot;&gt;gatsby-meta-config.js&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&quot;7-comments-feature&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#7-comments-feature&quot; aria-label=&quot;7 comments feature permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;7. Comments feature&lt;/h2&gt;
+&lt;p&gt;You can add comments feature by selecting one of them.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li class=&quot;task-list-item&quot;&gt;&lt;input type=&quot;checkbox&quot; disabled&gt; Disqus&lt;/li&gt;
+&lt;li class=&quot;task-list-item&quot;&gt;&lt;input type=&quot;checkbox&quot; disabled&gt; utterances&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;8-support-latex&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#8-support-latex&quot; aria-label=&quot;8 support latex permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;8. Support latex&lt;/h2&gt;
+&lt;p&gt;Support latex rendering with katex plugin.&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;tex&quot;&gt;&lt;pre class=&quot;language-tex&quot;&gt;&lt;code class=&quot;language-tex&quot;&gt;&lt;span class=&quot;token equation string&quot;&gt;$$&lt;span class=&quot;token equation-command regex&quot;&gt;\prod&lt;/span&gt;_{i=a}^{b} f(i)$$&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;span class=&quot;katex&quot;&gt;&lt;span class=&quot;katex-mathml&quot;&gt;&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mo&gt;∏&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/mrow&gt;&lt;mi&gt;b&lt;/mi&gt;&lt;/msubsup&gt;&lt;mi&gt;f&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;(&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding=&quot;application/x-tex&quot;&gt;\prod_{i=a}^{b} f(i)&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&quot;katex-html&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;base&quot;&gt;&lt;span class=&quot;strut&quot; style=&quot;height:1.2887179999999998em;vertical-align:-0.29971000000000003em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;mop&quot;&gt;&lt;span class=&quot;mop op-symbol small-op&quot; style=&quot;position:relative;top:-0.0000050000000000050004em;&quot;&gt;∏&lt;/span&gt;&lt;span class=&quot;msupsub&quot;&gt;&lt;span class=&quot;vlist-t vlist-t2&quot;&gt;&lt;span class=&quot;vlist-r&quot;&gt;&lt;span class=&quot;vlist&quot; style=&quot;height:0.9890079999999999em;&quot;&gt;&lt;span style=&quot;top:-2.40029em;margin-left:0em;margin-right:0.05em;&quot;&gt;&lt;span class=&quot;pstrut&quot; style=&quot;height:2.7em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;sizing reset-size6 size3 mtight&quot;&gt;&lt;span class=&quot;mord mtight&quot;&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;mrel mtight&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;a&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;top:-3.2029em;margin-right:0.05em;&quot;&gt;&lt;span class=&quot;pstrut&quot; style=&quot;height:2.7em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;sizing reset-size6 size3 mtight&quot;&gt;&lt;span class=&quot;mord mtight&quot;&gt;&lt;span class=&quot;mord mathdefault mtight&quot;&gt;b&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;vlist-s&quot;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;vlist-r&quot;&gt;&lt;span class=&quot;vlist&quot; style=&quot;height:0.29971000000000003em;&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;mspace&quot; style=&quot;margin-right:0.16666666666666666em;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;mord mathdefault&quot; style=&quot;margin-right:0.10764em;&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;mopen&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mord mathdefault&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;mclose&quot;&gt;)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;9-other-features-of-this-template&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#9-other-features-of-this-template&quot; aria-label=&quot;9 other features of this template permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;9. Other features of this template&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;You can add resume to &lt;code class=&quot;language-text&quot;&gt;/about&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Lazy rendering&lt;/li&gt;
+&lt;li&gt;Scroll restoration&lt;/li&gt;
+&lt;li&gt;Categorize posts&lt;/li&gt;
+&lt;li&gt;Offline caching with service worker (based gatsby)&lt;/li&gt;
+&lt;li&gt;Support GA(Google Analytics)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Let’s Start! &lt;a href=&quot;https://github.com/JaeYeopHan/gatsby-starter-bee&quot;&gt;Go&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content:encoded></item><item><title><![CDATA[about]]></title><description><![CDATA[Your name Thank you for reading my resume. If you want to contact me, Please send me an email.]]></description><link>https://duarbdhks.github.io/resume-en/</link><guid isPermaLink="false">https://duarbdhks.github.io/resume-en/</guid><pubDate>Sun, 27 Jan 2019 16:21:13 GMT</pubDate><content:encoded>&lt;h1 id=&quot;your-name&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#your-name&quot; aria-label=&quot;your name permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Your name&lt;/h1&gt;
+&lt;div align=&quot;center&quot;&gt;
+&lt;p&gt;&lt;em&gt;Thank you for reading my resume. If you want to contact me, Please send me an email.&lt;/em&gt;&lt;/p&gt;
+&lt;/div&gt;</content:encoded></item><item><title><![CDATA[Draft]]></title><description><![CDATA[Draft Post]]></description><link>https://duarbdhks.github.io/development/draft/</link><guid isPermaLink="false">https://duarbdhks.github.io/development/draft/</guid><pubDate>Thu, 03 Jan 2019 16:21:13 GMT</pubDate><content:encoded>&lt;p&gt;Draft Post&lt;/p&gt;</content:encoded></item></channel></rss>
