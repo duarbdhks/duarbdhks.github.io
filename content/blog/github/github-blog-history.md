@@ -3,7 +3,7 @@ title: GitHub 블로그
 date: 2021-02-08 23:02:85
 category: github
 thumbnail: './images/github-blog-history.png'
-draft: false
+draft: true
 ---
 
 ![main_thumbnail](./images/github-blog-history.png)
